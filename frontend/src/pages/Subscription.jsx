@@ -13,16 +13,16 @@ import api from '../services/api';
 <Silk
   speed={5}
   scale={1}
-  color="#14B8A6"
+  color="#4F46E5"
   noiseIntensity={1.5}
   rotation={0}
 />
 
 // Avatar gradient colors to assign to reviews
 const avatarGradients = [
-  "from-brand-400 to-teal-600",
-  "from-teal-400 to-cyan-600",
-  "from-teal-400 to-cyan-600",
+  "from-brand-400 to-indigo-600",
+  "from-indigo-400 to-purple-600",
+  "from-blue-400 to-cyan-600",
   "from-pink-400 to-rose-600",
   "from-violet-400 to-purple-600",
   "from-cyan-400 to-blue-600",
@@ -35,21 +35,21 @@ const fallbackTestimonials = [
     quote: "We verified 200+ suppliers in our first month. The GST validation alone saved us from three fraudulent dealers.",
     name: "Priya Sharma",
     title: "Head of Procurement, Loom & Weave Exports",
-    gradient: "from-brand-400 to-teal-600",
+    gradient: "from-brand-400 to-indigo-600",
     rating: 5,
   },
   {
     quote: "Before TextileTrust, onboarding a new yarn supplier took weeks. Now we verify and connect in under 10 minutes.",
     name: "Amit Patel",
     title: "CEO, Patel Yarn Industries",
-    gradient: "from-emerald-400 to-teal-600",
+    gradient: "from-brand-400 to-indigo-600",
     rating: 5,
   },
   {
     quote: "The trust scores and deal-again ratings give us real confidence before placing large fabric orders.",
     name: "Sneha Agarwal",
     title: "Director, Agarwal Textile House",
-    gradient: "from-emerald-400 to-teal-600",
+    gradient: "from-brand-400 to-indigo-600",
     rating: 5,
   },
   {
@@ -309,8 +309,8 @@ const Subscription = () => {
     return (
       <div className="min-h-screen pt-24 sm:pt-32 md:pt-40 pb-20 sm:pb-32 px-4 flex items-center justify-center bg-future-midnight" data-nav-theme="dark">
         <GlassCard className="max-w-xl w-full text-center p-6 sm:p-12 reveal">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 mb-8 border border-emerald-200">
-            <CheckCircle className="w-10 h-10 text-emerald-600" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100 mb-8 border border-indigo-200">
+            <CheckCircle className="w-10 h-10 text-indigo-600" />
           </div>
           <h2 className="text-3xl font-bold text-future-carbon mb-4">Subscription Request Submitted</h2>
           <p className="text-future-steel text-lg mb-10 leading-relaxed">
@@ -336,7 +336,7 @@ const Subscription = () => {
         <div className="hidden lg:flex flex-col justify-between w-full lg:w-5/12 bg-black p-12 relative overflow-hidden text-white">
            {/* Background FX */}
            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-500/20 rounded-full blur-[100px] opacity-40 -translate-y-1/2 translate-x-1/2"></div>
-           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-900/40 rounded-full blur-[100px] opacity-50 translate-y-1/2 -translate-x-1/2"></div>
+           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-900/40 rounded-full blur-[100px] opacity-50 translate-y-1/2 -translate-x-1/2"></div>
            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.05]"></div>
 
            <div className="relative z-10 mt-20">
@@ -405,7 +405,7 @@ const Subscription = () => {
         <div className="flex-1 w-full relative bg-transparent lg:bg-white overflow-x-hidden">
            {/* Mobile Background Decor (same as Login page) */}
            <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] rounded-full bg-brand-500/20 blur-[80px] lg:hidden pointer-events-none"></div>
-           <div className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-teal-600/20 blur-[80px] lg:hidden pointer-events-none"></div>
+           <div className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-indigo-600/20 blur-[80px] lg:hidden pointer-events-none"></div>
 
            {/* Mobile: centered glass card layout (like Login page) */}
            <div className="flex items-start justify-center px-4 sm:px-6 pt-24 pb-24 sm:pt-32 sm:pb-32 min-h-screen lg:hidden relative">
@@ -762,7 +762,7 @@ const Subscription = () => {
           <Silk
             speed={3}
             scale={1.2}
-            color="#10B981"
+            color="#4F46E5"
             noiseIntensity={1}
             rotation={0.5}
           />
@@ -770,7 +770,7 @@ const Subscription = () => {
 
         {/* Dark Background Effects */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/20 rounded-full blur-[120px] opacity-40 animate-pulse z-5"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-900/40 rounded-full blur-[120px] opacity-50 z-5"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-900/40 rounded-full blur-[120px] opacity-50 z-5"></div>
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.05] z-5"></div>
         
         <div className="container-custom relative z-10 text-center max-w-4xl mx-auto reveal">
@@ -797,7 +797,7 @@ const Subscription = () => {
               }} 
               className="px-8 py-4 text-lg shadow-2xl shadow-brand-500/30 border border-white/10"
             >
-              Get Started
+              Subscribe Now
             </Button>
           </div>
         </div>
@@ -825,10 +825,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Payment timeline analysis
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Payment timeline analysis
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Default probability score
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Default probability score
                 </li>
               </ul>
             </GlassCard>
@@ -844,10 +844,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Filter by machine count
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Filter by machine count
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Export-ready status
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Export-ready status
                 </li>
               </ul>
             </GlassCard>
@@ -863,10 +863,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Verified-only access
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Verified-only access
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Direct CEO connections
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Direct CEO connections
                 </li>
               </ul>
             </GlassCard>
@@ -882,10 +882,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Daily price alerts
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Daily price alerts
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Demand forecasting
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Demand forecasting
                 </li>
               </ul>
             </GlassCard>
@@ -901,10 +901,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Instant GST check
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Instant GST check
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Bulk verification
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Bulk verification
                 </li>
               </ul>
             </GlassCard>
@@ -920,10 +920,10 @@ const Subscription = () => {
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Trust badge for website
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Trust badge for website
                 </li>
                 <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" /> Verified compliance
+                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Verified compliance
                 </li>
               </ul>
             </GlassCard>

@@ -264,10 +264,93 @@ const getFeaturedReviews = asyncHandler(async (req, res) => {
   res.status(200).json(featured);
 });
 
+// @desc    Get recent reviews for home page (True Data)
+// @route   GET /api/reviews/recent
+// @access  Public
+const getRecentReviews = asyncHandler(async (req, res) => {
+  // Fetch latest 8 reviews with full details
+  const reviews = await Review.find({ 
+      rating: { $exists: true }, 
+      comment: { $exists: true, $ne: "" },
+      isHidden: { $ne: true } 
+    })
+    .populate({
+      path: 'userId',
+      select: 'companyName profilePhoto city country role'
+    })
+    .populate({
+      path: 'companyId',
+      select: 'name submittedBy domain city businessType' // Fetch submittedBy to get owner's photo as logo
+    })
+    .sort({ createdAt: -1 })
+    .limit(8);
+
+  // Post-process to populate company logo from owner's profile (since companies don't have separate logo field yet)
+  const populatedReviews = await Promise.all(reviews.map(async (review) => {
+    let companyLogo = null;
+    if (review.companyId && review.companyId.submittedBy) {
+       // We need to fetch the owner to get their profile photo if it's not populated deep enough
+       // Or we can rely on frontend fallback if we don't want to do N+1 queries.
+       // Let's do a quick lookup or better yet, Deep Populate in the main query if possible.
+       // Mongoose deep populate: .populate({ path: 'companyId', populate: { path: 'submittedBy', select: 'profilePhoto' } })
+    }
+    return review;
+  }));
+  
+  // Re-query with deep populate for efficiency
+  const deepReviews = await Review.find({ 
+      rating: { $exists: true }, 
+      comment: { $exists: true, $ne: "" },
+      isHidden: { $ne: true } 
+    })
+    .populate({
+      path: 'userId',
+      select: 'companyName profilePhoto city country role'
+    })
+    .populate({
+      path: 'companyId',
+      select: 'name submittedBy city businessType website',
+      populate: {
+        path: 'submittedBy',
+        select: 'profilePhoto'
+      }
+    })
+    .sort({ createdAt: -1 })
+    .limit(16);
+
+  const formatted = deepReviews.map(r => {
+    // Safety check for missing relations
+    if (!r.userId || !r.companyId) return null;
+
+    return {
+      _id: r._id,
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt,
+      user: {
+        name: r.userId.companyName || 'Anonymous', // Use Company Name as User Name for B2B context, or fallback
+        photo: r.userId.profilePhoto,
+        location: r.userId.city || 'Global'
+      },
+      company: {
+        id: r.companyId._id,
+        name: r.companyId.name,
+        logo: r.companyId.submittedBy?.profilePhoto, // Use owner's photo as logo
+        domain: r.companyId.website || 'textiletrust.com',
+        category: r.companyId.businessType || 'Verified Business'
+      }
+    };
+  }).filter(Boolean); // Remove nulls
+
+  res.status(200).json(formatted);
+});
+
 module.exports = {
   getReviews,
   getUserReviews,
   addReview,
   updateReview,
-  getFeaturedReviews
+  updateReview,
+  getFeaturedReviews,
+  getRecentReviews
 };

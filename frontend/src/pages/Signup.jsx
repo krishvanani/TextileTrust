@@ -118,7 +118,7 @@ const Signup = () => {
         
         <div className="relative z-10 max-w-lg">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm font-medium text-white mb-8 shadow-sm">
-             <ShieldCheck className="w-4 h-4 mr-2 text-emerald-400" />
+             <ShieldCheck className="w-4 h-4 mr-2 text-indigo-400" />
              Join Verified Network
           </div>
           <h1 className="text-5xl font-bold tracking-tight mb-6 leading-tight text-white drop-shadow-xl">
@@ -145,7 +145,7 @@ const Signup = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-16 relative overflow-y-auto pt-20 sm:pt-24 lg:pt-28 overflow-hidden">
         {/* Mobile Background Decor */}
         <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] rounded-full bg-brand-500/20 blur-[80px] lg:hidden pointer-events-none orb-float-1"></div>
-        <div className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-teal-600/20 blur-[80px] lg:hidden pointer-events-none orb-float-2"></div>
+        <div className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-indigo-600/20 blur-[80px] lg:hidden pointer-events-none orb-float-2"></div>
 
         {/* Link removed - handled by Navbar */}
         

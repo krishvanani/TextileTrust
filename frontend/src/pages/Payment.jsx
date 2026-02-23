@@ -80,15 +80,15 @@ const Payment = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white px-4">
         <GlassCard className="max-w-md w-full text-center p-10 reveal">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 mb-6 border-2 border-emerald-200 animate-bounce">
-            <CheckCircle className="w-10 h-10 text-emerald-600" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100 mb-6 border-2 border-indigo-200 animate-bounce">
+            <CheckCircle className="w-10 h-10 text-indigo-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
           <p className="text-gray-500 mb-1">$1,000.00 has been charged to your card.</p>
           <p className="text-sm text-gray-400">Redirecting you to your company profile...</p>
           <div className="mt-6">
             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-emerald-500 h-1.5 rounded-full animate-pulse" style={{ width: '100%' }}></div>
+              <div className="bg-indigo-500 h-1.5 rounded-full animate-pulse" style={{ width: '100%' }}></div>
             </div>
           </div>
         </GlassCard>
@@ -100,7 +100,7 @@ const Payment = () => {
     <div className="min-h-screen bg-white pt-28 sm:pt-32 pb-16 px-4 relative overflow-hidden">
       {/* Floating gradient orbs */}
       <div className="hidden sm:block absolute top-20 right-20 w-72 h-72 bg-brand-500/8 rounded-full blur-[100px] -z-10 orb-float-1"></div>
-      <div className="hidden sm:block absolute bottom-40 left-10 w-96 h-96 bg-teal-500/8 rounded-full blur-[120px] -z-10 orb-float-2"></div>
+      <div className="hidden sm:block absolute bottom-40 left-10 w-96 h-96 bg-indigo-500/8 rounded-full blur-[120px] -z-10 orb-float-2"></div>
       <div className="max-w-5xl mx-auto">
 
         {/* Back Button */}
@@ -212,7 +212,7 @@ const Payment = () => {
               </div>
               <div className="p-6 space-y-5">
                 <div className="flex items-center gap-3 pb-5 border-b border-gray-100">
-                  <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-teal-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
                     <Zap className="w-6 h-6" />
                   </div>
                   <div>
@@ -251,12 +251,12 @@ const Payment = () => {
                   </div>
                 </div>
 
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 space-y-2 mt-4">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-2 mt-4">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700">
                     <ShieldCheck className="w-4 h-4" />
                     What you get:
                   </div>
-                  <ul className="text-xs text-emerald-600 space-y-1.5 ml-6">
+                  <ul className="text-xs text-indigo-600 space-y-1.5 ml-6">
                     <li className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 flex-shrink-0" /> Verified Company Profile</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 flex-shrink-0" /> Credit Risk Reports</li>
                     <li className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3 flex-shrink-0" /> Advanced Search Filters</li>

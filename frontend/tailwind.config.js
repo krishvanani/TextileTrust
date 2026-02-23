@@ -8,18 +8,18 @@ export default {
     extend: {
         colors: {
           brand: {
-            50: '#F0FDFA', // Teal 50
-            100: '#CCFBF1', // Teal 100
-            200: '#99F6E4', // Teal 200
-            300: '#5EEAD4', // Teal 300
-            400: '#2DD4BF', // Teal 400
-            500: '#14B8A6', // Teal 500
-            600: '#0D9488', // Teal 600 - Primary Brand
-            700: '#0F766E', // Teal 700
-            800: '#115E59', // Teal 800
-            900: '#134E4A', // Teal 900
+            50: '#EEF2FF', // Indigo 50
+            100: '#E0E7FF', // Indigo 100
+            200: '#C7D2FE', // Indigo 200
+            300: '#A5B4FC', // Indigo 300
+            400: '#818CF8', // Indigo 400
+            500: '#6366F1', // Indigo 500
+            600: '#4F46E5', // Indigo 600 - Primary Brand
+            700: '#4338CA', // Indigo 700
+            800: '#3730A3', // Indigo 800
+            900: '#312E81', // Indigo 900
           },
-          // Ocean / Cool Slate Palette
+          // Future / Slate Palette (Cool Gray)
           future: {
             white: '#FFFFFF',
             snow: '#F8FAFC', // Slate 50
@@ -29,8 +29,8 @@ export default {
             steel: '#64748B', // Slate 500 - Secondary text
             graphite: '#475569', // Slate 600 - Body text
             carbon: '#1E293B', // Slate 800 - Headers
-            midnight: '#0F172A', // Slate 900 - Deep ocean
-            accent: '#14B8A6', // Teal 500 - Ocean accent
+            midnight: '#0F172A', // Slate 900 - Deep backgrounds
+            accent: '#6366F1', // Indigo 500 - Accent
             success: '#10B981', // Emerald 500
           }
         },

@@ -42,7 +42,7 @@ const Profile = () => {
   const [bcBack, setBcBack] = React.useState(null);
   const [uploadingBC, setUploadingBC] = React.useState(false);
 
-  const API_BASE = 'http://localhost:5002';
+  const API_BASE = 'http://localhost:5003';
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -187,7 +187,7 @@ const Profile = () => {
     <div className="min-h-screen bg-white pt-28 sm:pt-28 md:pt-36 pb-12 sm:pb-16 md:pb-20 relative overflow-hidden">
         {/* Background Gradients - animated orbs */}
         <div className="hidden sm:block absolute top-20 left-10 w-64 md:w-96 h-64 md:h-96 bg-brand-500/10 rounded-full blur-[100px] -z-10 orb-float-1"></div>
-        <div className="hidden sm:block absolute bottom-20 right-10 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-teal-500/10 rounded-full blur-[120px] -z-10 orb-float-2"></div>
+        <div className="hidden sm:block absolute bottom-20 right-10 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 orb-float-2"></div>
 
       <div className="container-custom max-w-4xl">
         <div className="reveal">
@@ -223,7 +223,7 @@ const Profile = () => {
                                   className="w-full h-full rounded-full object-cover shadow-lg ring-2 sm:ring-4 ring-white"
                                 />
                               ) : (
-                                <div className="w-full h-full rounded-full bg-gradient-to-br from-brand-500 to-teal-600 flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl font-bold shadow-lg ring-2 sm:ring-4 ring-white">
+                                <div className="w-full h-full rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl font-bold shadow-lg ring-2 sm:ring-4 ring-white">
                                     {profile.companyName ? profile.companyName.charAt(0).toUpperCase() : 'U'}
                                 </div>
                               )}
@@ -292,7 +292,7 @@ const Profile = () => {
                             <Building2 className="w-4 h-4 mr-2 text-brand-500" /> 
                             My Company Dashboard
                          </h3>
-                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider w-fit ${companyStats.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider w-fit ${companyStats.status === 'APPROVED' ? 'bg-indigo-100 text-indigo-700' : 'bg-yellow-100 text-yellow-700'}`}>
                             {companyStats.status}
                          </span>
                       </div>
@@ -438,8 +438,8 @@ const Profile = () => {
 
                        <div className="group p-4 rounded-xl bg-white border border-gray-100 shadow-sm card-hover-lift">
                            <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                                   <Phone className="w-5 h-5 text-emerald-600" />
+                               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                                   <Phone className="w-5 h-5 text-indigo-600" />
                                </div>
                                <div>
                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Phone Number</p>
@@ -562,7 +562,7 @@ const Profile = () => {
                       <button
                         type="button"
                         onClick={() => setDealAgain(true)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-indigo-500 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                       >
                         <ThumbsUp className="w-4 h-4 mr-2" /> Yes, definitely
                       </button>
@@ -611,8 +611,8 @@ const Profile = () => {
               </>
             ) : (
               <div className="p-12 text-center flex flex-col items-center justify-center">
-                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                  <Check className="w-10 h-10 text-emerald-600" />
+                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                  <Check className="w-10 h-10 text-indigo-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Review Updated!</h3>
                 <p className="text-gray-500">

@@ -10,7 +10,7 @@ import api from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useSearch } from '../context/SearchContext';
 
-const API_BASE = 'http://localhost:5002';
+const API_BASE = 'http://localhost:5003';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -193,8 +193,8 @@ const Search = () => {
               )}
               {!loading && companies.map((company, index) => {
                 const rating = company.avgRating ?? company.rating ?? 0;
-                let ratingColor = "bg-emerald-50 text-emerald-600 border border-emerald-100"; // Default (New)
-                if (rating >= 5.0) ratingColor = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+                let ratingColor = "bg-indigo-50 text-indigo-600 border border-indigo-100"; // Default (New)
+                if (rating >= 5.0) ratingColor = "bg-indigo-100 text-indigo-700 border border-indigo-200";
                 else if (rating >= 4.0) ratingColor = "bg-lime-100 text-lime-700 border border-lime-200";
                 else if (rating >= 3.0) ratingColor = "bg-amber-100 text-amber-700 border border-amber-200";
                 else if (rating >= 2.0) ratingColor = "bg-orange-100 text-orange-700 border border-orange-200";

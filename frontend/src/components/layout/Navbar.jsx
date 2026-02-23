@@ -29,7 +29,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const view = searchParams.get('view');
-  const API_BASE = 'http://localhost:5002';
+  const API_BASE = 'http://localhost:5003';
 
   // Initialize theme - Always Dark for consistent style
   const isDarkTheme = true; 
@@ -112,7 +112,7 @@ const Navbar = () => {
       : "text-future-midnight group-hover:text-future-carbon";
   const logoIconClasses =
     isDarkTheme
-      ? "text-brand-400 group-hover:text-brand-300 drop-shadow-[0_0_8px_rgba(20,184,166,0.5)]"
+      ? "text-brand-400 group-hover:text-brand-300 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
       : "text-brand-600";
   
   const hamburgerClasses =
@@ -128,7 +128,7 @@ const Navbar = () => {
       {!isAuthPage && (
         <div className="absolute top-0 left-0 w-full h-[2px] z-[60]">
           <div 
-            className="h-full bg-gradient-to-r from-brand-400 via-brand-500 to-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" 
+            className="h-full bg-gradient-to-r from-brand-400 via-brand-500 to-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" 
             style={{ width: `${scrollProgress}%`, transition: 'width 0.1s linear' }}
           />
         </div>
@@ -139,7 +139,7 @@ const Navbar = () => {
           <div className="pointer-events-auto z-50">
             <Link to="/" className="flex items-center space-x-2 group">
                <Logo 
-                 className="transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_12px_rgba(20,184,166,0.4)]"
+                 className="transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]"
                  iconClassName={`h-8 w-8 ${logoIconClasses}`}
                  textClassName={`text-lg transition-colors ${logoTextClasses}`}
                  showText={true}

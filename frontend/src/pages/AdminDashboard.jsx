@@ -26,7 +26,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen pb-20 bg-white relative overflow-hidden">
       {/* Floating gradient orbs */}
       <div className="hidden sm:block absolute top-40 right-10 w-64 h-64 bg-brand-500/8 rounded-full blur-[100px] -z-10 orb-float-1"></div>
-      <div className="hidden sm:block absolute bottom-20 left-20 w-80 h-80 bg-teal-500/6 rounded-full blur-[120px] -z-10 orb-float-2"></div>
+      <div className="hidden sm:block absolute bottom-20 left-20 w-80 h-80 bg-indigo-500/6 rounded-full blur-[120px] -z-10 orb-float-2"></div>
       <div className="rounded-none rounded-b-3xl border-t-0 border-x-0 reveal pt-28 bg-gray-50 shadow-md">
         <div className="container-custom py-6">
           <h1 className="text-2xl font-bold text-future-carbon">Admin Dashboard</h1>

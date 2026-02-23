@@ -7,7 +7,7 @@ import useScrollReveal from '../hooks/useScrollReveal';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
-const API_BASE = 'http://localhost:5002';
+const API_BASE = 'http://localhost:5003';
 
 // Mock Data (matches Search page)
 const MOCK_DATA = {
@@ -850,7 +850,7 @@ const CompanyProfile = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 modal-backdrop-blur" onClick={() => setShowSubModal(false)}></div>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden fade-in-scale">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-teal-600"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-indigo-600"></div>
             <button 
               onClick={() => setShowSubModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors"
@@ -935,7 +935,7 @@ const CompanyProfile = () => {
                       <button
                         type="button"
                         onClick={() => setDealAgain(true)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-indigo-500 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
                       >
                         <ThumbsUp className="w-4 h-4 mr-2" /> Yes, definitely
                       </button>
@@ -984,8 +984,8 @@ const CompanyProfile = () => {
               </>
             ) : (
               <div className="p-12 text-center flex flex-col items-center justify-center">
-                <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                  <Check className="w-10 h-10 text-emerald-600" />
+                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                  <Check className="w-10 h-10 text-indigo-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Review Submitted!</h3>
                 <p className="text-gray-500">

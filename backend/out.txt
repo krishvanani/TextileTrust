@@ -1,0 +1,4 @@
+[dotenv@17.2.3] injecting env (4) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+Server running on port 5002
+MongoDB Connected: ac-urcu4vt-shard-00-00.eyhvhuj.mongodb.net
+MongoDB connected to test

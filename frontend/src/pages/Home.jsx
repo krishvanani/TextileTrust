@@ -11,9 +11,10 @@ import SearchBar from '../components/ui/SearchBar';
 import { useSearch } from '../context/SearchContext';
 import LogoLoop from '../components/ui/LogoLoop';
 import StatsCounter from '../components/ui/StatsCounter';
-
-const API_BASE = 'http://localhost:5002';
+import RecentReviews from '../components/sections/RecentReviews';
 import TypewriterText from '../components/ui/TypewriterText';
+
+const API_BASE = 'http://localhost:5003';
 
 const LandingPage = () => {
   const { showNavbarSearch, setShowNavbarSearch } = useSearch();
@@ -84,7 +85,7 @@ const LandingPage = () => {
           <Silk
             speed={5}
             scale={1}
-            color="#14B8A6"
+            color="#4F46E5"
             noiseIntensity={1.5}
             rotation={0}
           />
@@ -92,7 +93,7 @@ const LandingPage = () => {
 
         {/* Dark Background Effects - hidden on mobile for performance */}
         <div className="hidden sm:block absolute top-0 right-0 w-[400px] md:w-[600px] lg:w-[800px] h-[400px] md:h-[600px] lg:h-[800px] bg-brand-500/20 rounded-full blur-[120px] opacity-40 -translate-y-1/3 translate-x-1/3 animate-float z-5"></div>
-        <div className="hidden sm:block absolute bottom-0 left-0 w-[300px] md:w-[450px] lg:w-[600px] h-[300px] md:h-[450px] lg:h-[600px] bg-teal-900/40 rounded-full blur-[120px] opacity-50 translate-y-1/3 -translate-x-1/3 animate-float animation-delay-2000 z-5"></div>
+        <div className="hidden sm:block absolute bottom-0 left-0 w-[300px] md:w-[450px] lg:w-[600px] h-[300px] md:h-[450px] lg:h-[600px] bg-indigo-900/40 rounded-full blur-[120px] opacity-50 translate-y-1/3 -translate-x-1/3 animate-float animation-delay-2000 z-5"></div>
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.05] z-5"></div>
 
         <div className="container-custom relative z-10 text-center max-w-5xl mx-auto reveal">
@@ -147,7 +148,7 @@ const LandingPage = () => {
                           <div 
                             key={company._id}
                             onClick={() => handleSelectCompany(company._id)}
-                            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 w-[260px] flex flex-col gap-2 mx-2 cursor-pointer active:scale-95 transition-transform shadow-soft"
+                            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-4 w-[290px] flex flex-col gap-2 mx-2 cursor-pointer active:scale-95 transition-transform shadow-soft text-left relative"
                           >
                              <div className="flex items-center gap-2 mb-1">
                                 <div className="w-9 h-9 min-w-[36px] rounded-lg bg-white/10 flex items-center justify-center text-white/70 font-bold text-xs uppercase overflow-hidden border border-white/20">
@@ -159,7 +160,10 @@ const LandingPage = () => {
                                 </div>
                                 <h4 className="font-bold text-white text-sm truncate max-w-[140px]">{company.name}</h4>
                              </div>
-                             <div className="flex justify-between items-center">
+                             <div className="text-[10px] text-brand-200/50 ml-1">
+                                Deal Again: {company.dealAgainPercentage || 0}%
+                             </div>
+                             <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                                 <div className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                                    company.trustStatus === 'TRUSTED' ? 'bg-emerald-500/20 text-emerald-300' :
                                    company.trustStatus === 'CAUTION' ? 'bg-amber-500/20 text-amber-300' :
@@ -167,11 +171,11 @@ const LandingPage = () => {
                                 }`}>
                                    {company.trustStatus}
                                 </div>
-                             </div>
-                             <div className="flex items-center text-xs text-brand-100/70">
-                                <Star className="w-3 h-3 text-orange-400 fill-orange-400 mr-1" />
-                                <span className="font-bold text-white mr-1">{company.avgRating}</span>
-                                <span>({company.totalReviews})</span>
+                                <div className="flex items-center justify-end text-xs text-brand-100/70">
+                                   <Star className="w-3 h-3 text-orange-400 fill-orange-400 mr-1" />
+                                   <span className="font-bold text-white mr-1">{company.avgRating}</span>
+                                   <span>({company.totalReviews})</span>
+                                </div>
                              </div>
                           </div>
                         )
@@ -192,7 +196,7 @@ const LandingPage = () => {
                       <div 
                         key={company._id}
                         onClick={() => handleSelectCompany(company._id)}
-                        className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 sm:p-4 hover:bg-white/10 transition-all cursor-pointer group active:scale-[0.98] shadow-soft"
+                        className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-3 sm:p-4 hover:bg-white/10 transition-all cursor-pointer group active:scale-[0.98] shadow-soft"
                       >
                          <div className="flex items-center gap-2.5 mb-2">
                             <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-lg bg-white/10 flex items-center justify-center text-white/70 font-bold text-sm uppercase overflow-hidden border border-white/20 flex-shrink-0">
@@ -276,7 +280,7 @@ const LandingPage = () => {
       <section className="py-24 bg-future-midnight relative overflow-hidden" data-nav-theme="dark">
         {/* Dark Background Effects */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600/20 rounded-full blur-[120px] opacity-30 orb-float-1"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-900/40 rounded-full blur-[120px] opacity-40 orb-float-2"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-900/40 rounded-full blur-[120px] opacity-40 orb-float-2"></div>
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.05]"></div>
 
         <div className="container-custom relative z-10">
@@ -316,7 +320,7 @@ const LandingPage = () => {
                   </div>
                   <div>
                     <div className="text-xl font-bold text-white">Verification Status</div>
-                    <div className="text-emerald-400 font-mono text-sm tracking-wider">100% SECURE</div>
+                    <div className="text-indigo-400 font-mono text-sm tracking-wider">100% SECURE</div>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -352,7 +356,7 @@ const LandingPage = () => {
             </GlassCard>
             
             <GlassCard className="p-8 text-center reveal reveal-delay-2 card-hover-lift group">
-              <div className="w-16 h-16 mx-auto bg-teal-50 rounded-full flex items-center justify-center mb-6 text-teal-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-teal-500/20 transition-all duration-300">
+              <div className="w-16 h-16 mx-auto bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/20 transition-all duration-300">
                 <Users className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-future-carbon mb-3">Manufacturers</h3>
@@ -362,7 +366,7 @@ const LandingPage = () => {
             </GlassCard>
             
             <GlassCard className="p-8 text-center reveal reveal-delay-3 card-hover-lift group">
-              <div className="w-16 h-16 mx-auto bg-teal-50 rounded-full flex items-center justify-center mb-6 text-teal-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-teal-500/20 transition-all duration-300">
+              <div className="w-16 h-16 mx-auto bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/20 transition-all duration-300">
                 <Search className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-future-carbon mb-3">Sourcing Agents</h3>
@@ -385,7 +389,7 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-3 gap-12 relative z-10">
             {/* Animated Dashed Connector */}
             <svg className="hidden md:block absolute top-14 left-[20%] right-[20%] w-[60%] h-2 -z-10" preserveAspectRatio="none">
-              <line x1="0" y1="4" x2="100%" y2="4" stroke="#99F6E4" strokeWidth="2" className="dash-animate" />
+              <line x1="0" y1="4" x2="100%" y2="4" stroke="#C7D2FE" strokeWidth="2" className="dash-animate" />
             </svg>
 
             {[
@@ -443,6 +447,11 @@ const LandingPage = () => {
           </div>
         </section>
       )}
+
+      {/* Recent Reviews Section */}
+      <RecentReviews />
+
+      {/* Footer is in Layout.jsx, so we just end here */}
     </div>
   );
 };
