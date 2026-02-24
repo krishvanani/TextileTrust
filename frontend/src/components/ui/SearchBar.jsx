@@ -11,7 +11,6 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
   const { searchTerm, setSearchTerm } = useSearch();
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
 
   // For navbar variant, we might want local state if we don't want to sync perfectly with hero
   // But per requirements, "never show both". 
@@ -72,14 +71,11 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (activeIndex >= 0 && suggestions[activeIndex]) {
-       handleSelectCompany(suggestions[activeIndex]._id);
-       return;
-    }
     // Navigate with query param so Search page can read it
     const query = searchTerm.trim();
     navigate(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
     setShowDropdown(false);
+    setSearchTerm(''); // Clear after navigating
   };
 
   const handleSelectCompany = (companyId) => {
@@ -115,7 +111,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
                 <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 text-left">
                      <div className="py-2">
                          <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
-                         {suggestions.map((company, index) => {
+                         {suggestions.map((company) => {
                             // Ensure we use the aggregate/average data
                             const rating = company.avgRating ?? company.rating ?? 0;
                             const reviewCount = company.totalReviews ?? company.reviews ?? 0;
@@ -196,7 +192,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
             <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 text-left">
                  <div className="py-2">
                      <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
-                     {suggestions.map((company, index) => {
+                     {suggestions.map((company) => {
                         // Ensure we use the aggregate/average data
                         const rating = company.avgRating ?? company.rating ?? 0;
                         const reviewCount = company.totalReviews ?? company.reviews ?? 0;

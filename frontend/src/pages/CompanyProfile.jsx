@@ -103,6 +103,7 @@ const CompanyProfile = () => {
   
   // Review Form State
   const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [dealAgain, setDealAgain] = useState(null); // true | false
   const [reviewText, setReviewText] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -175,15 +176,16 @@ const CompanyProfile = () => {
   };
 
   const calculateRelativeTime = (dateString) => {
-    // ... (Same as before)
     const date = new Date(dateString);
     const now = new Date();
     const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
     if (diffInDays === 0) return 'Reviewed today';
     if (diffInDays === 1) return 'Reviewed yesterday';
-    if (diffInDays < 30) return `Reviewed ${diffInDays} days ago`;
-    if (diffInDays < 365) return `Reviewed ${Math.floor(diffInDays / 30)} months ago`;
-    return `Reviewed ${Math.floor(diffInDays / 365)} years ago`;
+    if (diffInDays <= 3) return `Reviewed ${diffInDays} days ago`;
+    
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return `Reviewed on ${date.toLocaleDateString('en-US', options)}`;
   };
 
   // ... Auto-open useEffect ...
@@ -915,16 +917,24 @@ const CompanyProfile = () => {
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">Rate your experience</label>
                     <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setRating(star)}
-                          className={`p-1 transition-transform hover:scale-110 focus:outline-none ${rating >= star ? 'text-yellow-400 scale-110' : 'text-gray-200 hover:text-yellow-200'}`}
-                        >
-                          <Star className="w-8 h-8 fill-current" />
-                        </button>
-                      ))}
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const activeRating = hoverRating || rating;
+                        const isActive = star <= activeRating;
+                        const bgColor = isActive ? getRatingColor(activeRating) : '#f3f4f6';
+                        return (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="w-12 h-12 transition-transform hover:scale-105 focus:outline-none flex items-center justify-center shadow-sm"
+                            style={{ backgroundColor: bgColor }}
+                          >
+                            <Star className={`w-7 h-7 ${isActive ? 'text-white' : 'text-gray-300'} fill-current`} />
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -935,14 +945,14 @@ const CompanyProfile = () => {
                       <button
                         type="button"
                         onClick={() => setDealAgain(true)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-indigo-500 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-gray-100 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 text-gray-600'}`}
                       >
                         <ThumbsUp className="w-4 h-4 mr-2" /> Yes, definitely
                       </button>
                       <button
                         type="button"
                         onClick={() => setDealAgain(false)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === false ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === false ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-gray-100 hover:border-red-500 hover:text-red-700 hover:bg-red-50 text-gray-600'}`}
                       >
                         <Lock className="w-4 h-4 mr-2 rotate-180" /> No, avoid
                       </button>

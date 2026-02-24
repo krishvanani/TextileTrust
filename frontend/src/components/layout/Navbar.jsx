@@ -51,10 +51,13 @@ const Navbar = () => {
       const progress = docHeight > 0 ? (currentScrollY / docHeight) * 100 : 0;
       setScrollProgress(Math.min(progress, 100));
       
-      // 2. Auto-close Search on Scroll (User Request)
+      // 2. Auto-close Search and Profile Menu on Scroll (User Request)
       // Close if scrolled more than 10px from where we started
       if (isSearchOpen && Math.abs(currentScrollY - initialScrollY) > 10) {
         setIsSearchOpen(false);
+      }
+      if (isProfileMenuOpen && Math.abs(currentScrollY - initialScrollY) > 10) {
+        setIsProfileMenuOpen(false);
       }
     };
 
@@ -62,7 +65,20 @@ const Navbar = () => {
     handleScroll(); // Initial check
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [location.pathname, isSearchOpen]);
+  }, [location.pathname, isSearchOpen, isProfileMenuOpen]);
+
+  // Auto-close Profile Menu on Navigation is handled by onClick in the nav links
+
+  // Click outside to close profile menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+        if (isProfileMenuOpen && !event.target.closest('#profile-menu-container')) {
+            setIsProfileMenuOpen(false);
+        }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isProfileMenuOpen]);
 
   const navLinks = [
     { name: "Subscription", path: "/subscription", hideIfSubscribed: true },
@@ -226,51 +242,53 @@ const Navbar = () => {
                         })()
                       )}
 
-                      <button
-                        type="button"
-                        onClick={handleProfileClick}
-                        className={`flex items-center font-medium text-sm px-3 py-1.5 rounded-full border shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkTheme ? "bg-white/10 border-white/10 text-white focus:ring-white/30 focus:ring-offset-future-midnight" : "bg-white border-brand-100 text-future-carbon shadow-sm focus:ring-brand-200 focus:ring-offset-white"}`}
-                      >
-                        {user.profilePhoto ? (
-                          <img src={`${API_BASE}${user.profilePhoto}`} alt="" className="w-6 h-6 rounded-full object-cover mr-2" />
-                        ) : (
-                          <User className={`h-4 w-4 mr-2 ${isDarkTheme ? "text-brand-400" : "text-brand-600"}`} />
-                        )}
-                        {user.companyName}
-                      </button>
-                      
-                      {/* Dropdown Menu */}
-                      <div className={`absolute top-14 right-0 w-48 rounded-xl border shadow-lg transition-all duration-200 transform origin-top-right ${isProfileMenuOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"} ${isDarkTheme ? "bg-future-midnight/95 border-white/10" : "bg-white border-brand-100"}`}>
-                          <button
-                            className={`w-full text-left px-4 py-3 text-sm ${isDarkTheme ? "text-white hover:bg-white/5" : "text-future-carbon hover:bg-brand-50"}`}
-                            onClick={() => {
-                              navigate("/profile");
-                              setIsProfileMenuOpen(false);
-                            }}
-                          >
-                            Profile
-                          </button>
-                          {user.role === "ADMIN" && (
-                            <button
-                                className={`w-full text-left px-4 py-3 text-sm ${isDarkTheme ? "text-brand-300 hover:bg-white/5" : "text-brand-600 hover:bg-brand-50"}`}
-                                onClick={() => {
-                                navigate("/admin");
-                                setIsProfileMenuOpen(false);
-                                }}
-                            >
-                                Admin Dashboard
-                            </button>
+                      <div id="profile-menu-container" className="relative">
+                        <button
+                          type="button"
+                          onClick={handleProfileClick}
+                          className={`flex items-center font-medium text-sm px-3 py-1.5 rounded-full border shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkTheme ? "bg-white/10 border-white/10 text-white focus:ring-white/30 focus:ring-offset-future-midnight" : "bg-white border-brand-100 text-future-carbon shadow-sm focus:ring-brand-200 focus:ring-offset-white"}`}
+                        >
+                          {user.profilePhoto ? (
+                            <img src={`${API_BASE}${user.profilePhoto}`} alt="" className="w-6 h-6 rounded-full object-cover mr-2" />
+                          ) : (
+                            <User className={`h-4 w-4 mr-2 ${isDarkTheme ? "text-brand-400" : "text-brand-600"}`} />
                           )}
-                          <button
-                            className={`w-full text-left px-4 py-3 text-sm border-t ${isDarkTheme ? "border-white/5 text-red-200 hover:bg-white/5" : "border-brand-50 text-red-500 hover:bg-red-50"}`}
-                            onClick={() => {
-                              logout();
-                              setIsProfileMenuOpen(false);
-                            }}
-                          >
-                            Log out
-                          </button>
-                        </div>
+                          {user.companyName}
+                        </button>
+                        
+                        {/* Dropdown Menu */}
+                        <div className={`absolute top-full mt-2 right-0 w-48 rounded-xl border shadow-lg transition-all duration-200 transform origin-top-right ${isProfileMenuOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"} ${isDarkTheme ? "bg-future-midnight/95 border-white/10" : "bg-white border-brand-100"}`}>
+                            <button
+                              className={`w-full text-left px-4 py-3 text-sm rounded-t-xl ${isDarkTheme ? "text-white hover:bg-white/5" : "text-future-carbon hover:bg-brand-50"}`}
+                              onClick={() => {
+                                navigate("/profile");
+                                setIsProfileMenuOpen(false);
+                              }}
+                            >
+                              Profile
+                            </button>
+                            {user.role === "ADMIN" && (
+                              <button
+                                  className={`w-full text-left px-4 py-3 text-sm ${isDarkTheme ? "text-brand-300 hover:bg-white/5" : "text-brand-600 hover:bg-brand-50"}`}
+                                  onClick={() => {
+                                  navigate("/admin");
+                                  setIsProfileMenuOpen(false);
+                                  }}
+                              >
+                                  Admin Dashboard
+                              </button>
+                            )}
+                            <button
+                              className={`w-full text-left px-4 py-3 text-sm border-t rounded-b-xl ${isDarkTheme ? "border-white/5 text-red-200 hover:bg-white/5" : "border-brand-50 text-red-500 hover:bg-red-50"}`}
+                              onClick={() => {
+                                logout();
+                                setIsProfileMenuOpen(false);
+                              }}
+                            >
+                              Log out
+                            </button>
+                          </div>
+                      </div>
                     </div>
                   ) : (
                     <>

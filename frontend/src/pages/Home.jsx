@@ -17,13 +17,16 @@ import TypewriterText from '../components/ui/TypewriterText';
 const API_BASE = 'http://localhost:5003';
 
 const LandingPage = () => {
-  const { showNavbarSearch, setShowNavbarSearch } = useSearch();
-  // const showNavbarSearch = false; // Mock for debug
-  // const setShowNavbarSearch = () => {}; // Mock for debug
+  const { showNavbarSearch, setShowNavbarSearch, setSearchTerm } = useSearch();
   const heroRef = React.useRef(null);
   const searchContainerRef = React.useRef(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Clear search term when landing on Home
+  React.useEffect(() => {
+    setSearchTerm('');
+  }, [setSearchTerm]);
   
   // Enable scroll animations
   useScrollReveal();
@@ -448,8 +451,8 @@ const LandingPage = () => {
         </section>
       )}
 
-      {/* Recent Reviews Section */}
-      <RecentReviews />
+      {/* Recent Reviews Section - Hidden if not subscribed */}
+      {user?.isSubscribed && <RecentReviews />}
 
       {/* Footer is in Layout.jsx, so we just end here */}
     </div>

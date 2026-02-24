@@ -184,341 +184,328 @@ const Profile = () => {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-white pt-28 sm:pt-28 md:pt-36 pb-12 sm:pb-16 md:pb-20 relative overflow-hidden">
-        {/* Background Gradients - animated orbs */}
-        <div className="hidden sm:block absolute top-20 left-10 w-64 md:w-96 h-64 md:h-96 bg-brand-500/10 rounded-full blur-[100px] -z-10 orb-float-1"></div>
-        <div className="hidden sm:block absolute bottom-20 right-10 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -z-10 orb-float-2"></div>
+    <div className="min-h-screen bg-[#fafafa] pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-16 md:pb-20 relative overflow-hidden">
+        {/* Background Gradients */}
+        <div className="hidden sm:block absolute top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] -z-10 mix-blend-multiply"></div>
+        <div className="hidden sm:block absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[150px] -z-10 mix-blend-multiply"></div>
 
-      <div className="container-custom max-w-4xl">
+      <div className="container-custom max-w-6xl mx-auto px-4 sm:px-6">
         <div className="reveal">
-            {/* Header */}
-            <div className="flex items-center space-x-3 sm:space-x-4 mb-6 sm:mb-8">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl bg-white shadow-lg shadow-brand-500/10 flex items-center justify-center border border-white/50">
-                   <User className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-brand-600" />
-                </div>
-                <div>
-                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">My Profile</h1>
-                   <p className="text-xs sm:text-sm md:text-base text-gray-500 font-medium">Manage your account and subscription</p>
-                </div>
-            </div>
-
-            {/* Content Sections */}
-            <div className="space-y-6">
-               {/* Cover / Top Section */}
-               <div className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10 relative">
-                  <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-50">
-                      <ShieldCheck className="w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 text-gray-100 -rotate-12" />
-                  </div>
-
-                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
-                      <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
-                          <div 
-                            className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex-shrink-0 cursor-pointer group avatar-pulse-ring"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                              {profile.profilePhoto ? (
-                                <img 
-                                  src={`${API_BASE}${profile.profilePhoto}`} 
-                                  alt="Profile" 
-                                  className="w-full h-full rounded-full object-cover shadow-lg ring-2 sm:ring-4 ring-white"
-                                />
-                              ) : (
-                                <div className="w-full h-full rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl font-bold shadow-lg ring-2 sm:ring-4 ring-white">
-                                    {profile.companyName ? profile.companyName.charAt(0).toUpperCase() : 'U'}
-                                </div>
-                              )}
-                              <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                {uploadingPhoto ? (
-                                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                ) : (
-                                  <Camera className="w-5 h-5 text-white" />
-                                )}
-                              </div>
-                              <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/jpeg,image/png,image/gif,image/webp"
-                                onChange={handlePhotoUpload}
-                              />
-                          </div>
-                          <div className="min-w-0">
-                              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
-                                  {profile.companyName || profile.name || 'User'}
-                              </h2>
-                              <div className="flex flex-wrap items-center gap-2 mt-1">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-wider">
-                                     {profile.role || 'Member'}
-                                  </span>
-                                  {profile.isSubscribed ? (
-                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-200 shadow-sm">
-                                        <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 fill-amber-500 text-amber-500" /> Premium
-                                     </span>
-                                  ) : (
-                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                                        Free Plan
-                                     </span>
-                                  )}
-                              </div>
-                          </div>
-                      </div>
-
-                      
-                      {/* Quick Actions */}
-                      <div className="flex gap-2 sm:gap-3">
-                         {!profile.isSubscribed && (
-                            <Button to="/subscription" variant="primary" className="shadow-lg shadow-brand-500/20 min-h-[44px] touch-target text-sm sm:text-base">
-                               Upgrade Plan
-                            </Button>
-                         )}
-                         {companyStats && (
-                           <button 
-                             onClick={() => setShowBCModal(true)}
-                             className="flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 hover:text-brand-600 transition-colors shadow-sm h-[44px]"
+            
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+               
+               {/* LEFT SIDEBAR (Sticky on Desktop) */}
+               <div className="lg:w-[32%] shrink-0 space-y-6">
+                  <div className="lg:sticky lg:top-28 space-y-6">
+                     
+                     {/* 1. Profile Identity Card */}
+                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8 relative overflow-hidden group">
+                        
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                           <div 
+                             className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0 cursor-pointer group/avatar mb-5 ring-4 ring-gray-50 shadow-md"
+                             onClick={() => fileInputRef.current?.click()}
                            >
-                             <CreditCard className="w-4 h-4 mr-2" />
-                             Business Card
-                           </button>
-                         )}
-                      </div>
-                  </div>
-               </div>
-
-               {/* DASHBOARD & ANALYTICS (Owner Only) */}
-               {companyStats ? (
-                   <div className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
-                         <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center">
-                            <Building2 className="w-4 h-4 mr-2 text-brand-500" /> 
-                            My Company Dashboard
-                         </h3>
-                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider w-fit ${companyStats.status === 'APPROVED' ? 'bg-indigo-100 text-indigo-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                            {companyStats.status}
-                         </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                            <div className="text-xl sm:text-2xl font-bold text-gray-900 count-up-glow">{companyStats.viewsCount || 0}</div>
-                            <div className="text-[10px] uppercase font-bold text-gray-400 mt-1 flex items-center justify-center">
-                               <Eye className="w-3 h-3 mr-1" /> Views
-                            </div>
-                         </div>
-                         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                            <div className="text-xl sm:text-2xl font-bold text-gray-900 count-up-glow">{companyStats.totalReviews || 0}</div>
-                            <div className="text-[10px] uppercase font-bold text-gray-400 mt-1 flex items-center justify-center">
-                               <Star className="w-3 h-3 mr-1" /> Reviews
-                            </div>
-                         </div>
-                         <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                            <div className="text-xl sm:text-2xl font-bold text-gray-900 count-up-glow">{companyStats.avgRating || 0}</div>
-                            <div className="text-[10px] uppercase font-bold text-gray-400 mt-1 flex items-center justify-center">
-                               Rating
-                            </div>
-                         </div>
-                         {/* Business Card Small Box */}
-
-                      </div>
-                  </div>
-              ) : null}
-
-               {/* ACTIVITY HISTORY */}
-               <div className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-4 sm:p-6 md:p-8 lg:p-10">
-                   <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 sm:mb-6 flex items-center">
-                      <Activity className="w-4 h-4 mr-2 text-brand-500" /> 
-                      Recent Activity
-                   </h3>
-                   
-                   <div className="space-y-4">
-                      {activities.length > 0 ? (
-                         displayedActivities.map((act) => (
-                           <div key={act._id} className="flex items-start gap-4 pb-4 border-b border-gray-50 last:border-0 last:pb-0">
-                              <div className="mt-1 w-2 h-2 rounded-full bg-brand-400"></div>
-                              <div>
-                                 <p className="text-sm font-medium text-gray-900">{act.message}</p>
-                                 <p className="text-xs text-gray-400 mt-1 flex items-center">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {new Date(act.createdAt).toLocaleDateString()}
-                                 </p>
-                              </div>
-                           </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-4 text-gray-400 text-sm italic">
-                           No recent activity.
-                        </div>
-                      )}
-                   </div>
-
-                   {activities.length > 5 && (
-                      <div className="mt-4 text-center">
-                          <button 
-                            onClick={() => setShowAllActivities(!showAllActivities)}
-                            className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:underline"
-                          >
-                            {showAllActivities ? 'Show Less' : `View All Activity`}
-                          </button>
-                      </div>
-                   )}
-               </div>
-
-
-               {/* MY REVIEWS */}
-               <div className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-8 sm:p-10">
-                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6 flex items-center">
-                      <Star className="w-4 h-4 mr-2 text-brand-500" /> 
-                      My Reviews
-                   </h3>
-                   
-                   <div className="space-y-4">
-                      {myReviews.length > 0 ? (
-                        displayedReviews.map((review) => (
-                           <div key={review._id} className="p-4 rounded-xl border border-gray-100 bg-gray-50/50 card-hover-lift">
-                              <div className="flex justify-between items-start mb-2">
-                                 <div>
-                                    <h4 className="font-bold text-gray-900 text-sm">{review.companyId?.name || "Unknown Company"}</h4>
-                                    <div className="flex items-center text-xs text-gray-500 mt-1">
-                                       <span className="flex items-center text-yellow-500 mr-2">
-                                          {[...Array(5)].map((_, i) => (
-                                             <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-gray-200'}`} />
-                                          ))}
-                                       </span>
-                                       <span>• {new Date(review.updatedAt || review.createdAt).toLocaleDateString()}</span>
-                                    </div>
+                               {profile.profilePhoto ? (
+                                 <img 
+                                   src={`${API_BASE}${profile.profilePhoto}`} 
+                                   alt="Profile" 
+                                   className="w-full h-full rounded-full object-cover"
+                                 />
+                               ) : (
+                                 <div className="w-full h-full rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold">
+                                     {profile.companyName ? profile.companyName.charAt(0).toUpperCase() : 'U'}
                                  </div>
-                                 <button 
-                                    onClick={() => openEditReview(review)}
-                                    className="text-sm text-brand-600 hover:text-white hover:bg-brand-600 px-3 py-1.5 rounded-lg border border-brand-200 hover:border-brand-600 font-medium flex items-center gap-1.5 transition-all"
-                                 >
-                                    <Edit className="w-4 h-4" />
-                                    Edit
-                                 </button>
-                              </div>
-                              <p className="text-sm text-gray-600 italic">"{review.comment}"</p>
+                               )}
+                               <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+                                 {uploadingPhoto ? (
+                                   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                 ) : (
+                                   <Camera className="w-6 h-6 text-white" />
+                                 )}
+                               </div>
+                               <input
+                                 type="file"
+                                 ref={fileInputRef}
+                                 className="hidden"
+                                 accept="image/jpeg,image/png,image/gif,image/webp"
+                                 onChange={handlePhotoUpload}
+                               />
                            </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-4 text-gray-400 text-sm italic">
-                           You haven't written any reviews yet.
+                           
+                           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 tracking-tight">
+                               {profile.companyName || profile.name || 'User'}
+                           </h2>
+                           <div className="flex flex-wrap justify-center items-center gap-2 mb-6">
+                               <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 uppercase tracking-wider">
+                                  {profile.role || 'Member'}
+                               </span>
+                               {profile.isSubscribed ? (
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-amber-100 text-amber-700">
+                                     <Star className="w-3 h-3 mr-1 fill-current" /> Premium
+                                  </span>
+                               ) : (
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-500">
+                                     Free Plan
+                                  </span>
+                               )}
+                           </div>
+                           
+                           {/* Quick Actions */}
+                           <div className="w-full flex flex-col gap-3">
+                              {!profile.isSubscribed && (
+                                 <Button to="/subscription" variant="primary" fullWidth className="shadow-md shadow-brand-500/20 py-3">
+                                   Upgrade to Premium
+                                 </Button>
+                              )}
+                              {companyStats && (
+                                <button 
+                                  onClick={() => setShowBCModal(true)}
+                                  className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 font-bold hover:bg-gray-100 hover:text-brand-600 transition-all"
+                                >
+                                  <CreditCard className="w-4 h-4 mr-2" />
+                                  Manage Business Card
+                                </button>
+                              )}
+                           </div>
                         </div>
-                      )}
-                   </div>
+                     </div>
 
-                   {myReviews.length > 3 && (
-                      <div className="mt-6 text-center border-t border-gray-50 pt-4">
-                          <button 
-                            onClick={() => setShowAllReviews(!showAllReviews)}
-                            className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:underline flex items-center justify-center mx-auto"
-                          >
-                            {showAllReviews ? 'Show Less' : `View All ${myReviews.length} Reviews`}
-                          </button>
-                      </div>
-                   )}
+                     {/* 2. Contact Information */}
+                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6 flex items-center text-brand-600">
+                           <User className="w-4 h-4 mr-2" /> Contact details
+                        </h3>
+                        <div className="space-y-5">
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                    <Mail className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Email</p>
+                                    <p className="text-sm font-medium text-gray-900 truncate" title={profile.email}>{profile.email}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                    <Phone className="w-5 h-5 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Phone</p>
+                                    <p className="text-sm font-medium text-gray-900">{profile.contactNumber || profile.phone || '—'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                                    <Calendar className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">
+                                       {profile.isSubscribed ? 'Premium Since' : 'Joined'}
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                       {profile.subscription?.activatedAt 
+                                         ? new Date(profile.subscription.activatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'}) 
+                                         : (profile.createdAt 
+                                             ? new Date(profile.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'}) 
+                                             : '—')
+                                       }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+
+                     {/* 3. Account Actions */}
+                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                         <div className="flex flex-col gap-3">
+                           {profile.companyId && (
+                                  <button
+                                    onClick={() => navigate(`/company/${profile.companyId}`)}
+                                    className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all shadow-sm"
+                                  >
+                                     <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                     View Public Profile
+                                  </button>
+                           )}
+                           <button 
+                              onClick={logout}
+                              className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-red-100 bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-all shadow-sm"
+                           >
+                              <LogOut className="w-4 h-4 mr-2" />
+                              Sign Out
+                           </button>
+                         </div>
+                     </div>
+
+                  </div>
                </div>
 
-               {/* Details Grid */}
-               <div className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-8 sm:p-10">
-                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6 flex items-center">
-                      <User className="w-4 h-4 mr-2 text-brand-500" /> 
-                      Contact Information
-                   </h3>
-                   
-                   <div className="grid md:grid-cols-2 gap-6 mb-10">
-                       <div className="group p-4 rounded-xl bg-white border border-gray-100 shadow-sm card-hover-lift">
-                           <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                   <Mail className="w-5 h-5 text-blue-600" />
+               {/* RIGHT MAIN CONTENT */}
+               <div className="lg:w-[68%] grow space-y-6">
+                  
+                  {/* DASHBOARD & ANALYTICS (Owner Only) */}
+                  {companyStats ? (
+                      <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+                            <div>
+                               <h3 className="text-lg font-bold text-gray-900 tracking-tight flex items-center">
+                                  <Activity className="w-5 h-5 mr-2 text-brand-500" /> 
+                                  Company Performance
+                               </h3>
+                               <p className="text-sm text-gray-500 mt-1">Overview of your public profile metrics.</p>
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit border ${companyStats.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                               {companyStats.status}
+                            </span>
+                         </div>
+                         
+                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                  <Eye className="w-12 h-12" />
                                </div>
-                               <div className="overflow-hidden">
-                                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Email Address</p>
-                                   <p className="text-sm font-medium text-gray-900 truncate" title={profile.email}>{profile.email}</p>
+                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Profile Views</div>
+                               <div className="text-3xl font-bold text-gray-900 tracking-tight">{companyStats.viewsCount || 0}</div>
+                            </div>
+                            
+                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                  <Star className="w-12 h-12 fill-current" />
                                </div>
-                           </div>
-                       </div>
+                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Total Reviews</div>
+                               <div className="text-3xl font-bold text-gray-900 tracking-tight">{companyStats.totalReviews || 0}</div>
+                            </div>
+                            
+                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                  <ThumbsUp className="w-12 h-12" />
+                               </div>
+                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Avg. Rating</div>
+                               <div className={`text-3xl font-bold tracking-tight flex items-baseline gap-1 ${
+                                   companyStats.avgRating >= 4.5 ? 'text-green-600' :
+                                   companyStats.avgRating >= 3.5 ? 'text-lime-500' :
+                                   companyStats.avgRating >= 2.5 ? 'text-yellow-500' :
+                                   companyStats.avgRating >= 1.5 ? 'text-orange-500' : 
+                                   companyStats.avgRating > 0 ? 'text-red-600' : 'text-gray-400'
+                               }`}>
+                                  {companyStats.avgRating > 0 ? companyStats.avgRating.toFixed(1) : 0}
+                                  <span className="text-base text-gray-400 font-medium">/ 5.0</span>
+                               </div>
+                            </div>
+                         </div>
+                     </div>
+                 ) : null}
 
-                       <div className="group p-4 rounded-xl bg-white border border-gray-100 shadow-sm card-hover-lift">
-                           <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                                   <Phone className="w-5 h-5 text-indigo-600" />
-                               </div>
-                               <div>
-                                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Phone Number</p>
-                                   <p className="text-sm font-medium text-gray-900">{profile.contactNumber || profile.phone || '—'}</p>
-                               </div>
-                           </div>
-                       </div>
-
-                       <div className="group p-4 rounded-xl bg-white border border-gray-100 shadow-sm card-hover-lift">
-                           <div className="flex items-center gap-4">
-                               <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                                   <Calendar className="w-5 h-5 text-purple-600" />
-                               </div>
-                               <div>
-                                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                                      {profile.isSubscribed ? 'Premium Member Since' : 'Member Since'}
-                                   </p>
-                                   <p className="text-sm font-medium text-gray-900">
-                                      {profile.subscription?.activatedAt 
-                                        ? new Date(profile.subscription.activatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'}) 
-                                        : (profile.createdAt 
-                                            ? new Date(profile.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'}) 
-                                            : '—')
-                                      }
-                                   </p>
-                               </div>
-                           </div>
-                       </div>
-                       
-                       {profile.isSubscribed && (
-                           <div className="group p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 shadow-sm">
-                               <div className="flex items-center gap-4">
-                                   <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                                       <CreditCard className="w-5 h-5 text-amber-600" />
-                                   </div>
-                                   <div>
-                                       <p className="text-xs font-bold text-amber-600/70 uppercase tracking-wide">Subscription</p>
-                                       <p className="text-sm font-bold text-amber-800">Premium Active</p>
-                                   </div>
-                               </div>
-                           </div>
-                       )}
-                   </div>
-
-                   {/* Action Buttons */}
-                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6 flex items-center pt-6 border-t border-gray-100">
-                      <ShieldCheck className="w-4 h-4 mr-2 text-brand-500" /> 
-                      Account Actions
-                   </h3>
-
-                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {profile.companyId && (
-                             <button
-                               onClick={() => navigate(`/company/${profile.companyId}`)}
-                               className="flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm group"
+                 {/* ACTIVITY HISTORY */}
+                 <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                         <h3 className="text-lg font-bold text-gray-900 tracking-tight">Recent Activity</h3>
+                         {activities.length > 5 && (
+                             <button 
+                               onClick={() => setShowAllActivities(!showAllActivities)}
+                               className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors"
                              >
-                                <Building2 className="w-4 h-4 mr-2 text-gray-400 group-hover:text-brand-600" />
-                                View Company Profile
+                               {showAllActivities ? 'Show Less' : 'View All'}
                              </button>
-                      )}
+                         )}
+                     </div>
+                     
+                     <div className="space-y-6">
+                        {activities.length > 0 ? (
+                           displayedActivities.map((act) => (
+                             <div key={act._id} className="flex gap-4 group">
+                                <div className="flex flex-col items-center">
+                                   <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-brand-50 group-hover:border-brand-100 transition-colors">
+                                      <Activity className="w-4 h-4 text-indigo-500 group-hover:text-brand-600" />
+                                   </div>
+                                   <div className="w-0.5 h-full bg-gray-100 mt-2 group-last:hidden"></div>
+                                </div>
+                                <div className="pb-6 group-last:pb-0 pt-1.5">
+                                   <p className="text-sm font-medium text-gray-800 leading-snug">{act.message}</p>
+                                   <p className="text-xs text-gray-400 mt-1.5 flex items-center font-medium">
+                                      <Clock className="w-3 h-3 mr-1.5" />
+                                      {new Date(act.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                   </p>
+                                </div>
+                             </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-10 text-gray-400 text-sm">
+                             <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                             No recent activity found.
+                          </div>
+                        )}
+                     </div>
+                 </div>
 
+                 {/* MY REVIEWS */}
+                 <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                         <h3 className="text-lg font-bold text-gray-900 tracking-tight">Reviews I've Written</h3>
+                         {myReviews.length > 3 && (
+                             <button 
+                               onClick={() => setShowAllReviews(!showAllReviews)}
+                               className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors"
+                             >
+                               {showAllReviews ? 'Show Less' : `View All (${myReviews.length})`}
+                             </button>
+                         )}
+                     </div>
+                     
+                     <div className="space-y-4">
+                        {myReviews.length > 0 ? (
+                          displayedReviews.map((review) => (
+                             <div key={review._id} className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-brand-200/50 transition-colors group">
+                                <div className="flex justify-between items-start mb-3">
+                                   <div className="min-w-0 mr-4">
+                                      <h4 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-brand-600 transition-colors truncate">{review.companyId?.name || "Unknown Company"}</h4>
+                                      <div className="flex items-center text-xs text-gray-500">
+                                         <div className="flex gap-0.5 mr-2.5">
+                                           {[...Array(5)].map((_, idx) => {
+                                              const activeColor = review.rating >= 5 ? 'bg-emerald-500' :
+                                                                  review.rating >= 4 ? 'bg-lime-500' :
+                                                                  review.rating >= 3 ? 'bg-yellow-400' :
+                                                                  review.rating >= 2 ? 'bg-orange-500' : 'bg-red-500';
+                                              return (
+                                                <div key={idx} className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm flex items-center justify-center ${idx < review.rating ? activeColor : 'bg-gray-200'}`}>
+                                                   <Star className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${idx < review.rating ? 'text-white fill-current' : 'text-transparent'}`} />
+                                                </div>
+                                              );
+                                           })}
+                                         </div>
+                                         <span className="font-medium shrink-0">{new Date(review.updatedAt || review.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                                      </div>
+                                   </div>
+                                   <button 
+                                      onClick={() => openEditReview(review)}
+                                      className="text-sm text-gray-500 hover:text-brand-600 bg-white hover:bg-brand-50 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-brand-200 font-medium flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                                   >
+                                      <Edit className="w-3.5 h-3.5" />
+                                      Edit
+                                   </button>
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed bg-white/60 p-3 rounded-xl border border-gray-100/50">"{review.comment}"</p>
+                             </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-10 text-gray-400 text-sm">
+                             <Star className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                             You haven't left any reviews yet.
+                          </div>
+                        )}
+                     </div>
+                 </div>
 
-
-                      <button 
-                         onClick={logout}
-                         className="flex items-center justify-center px-4 py-3 rounded-xl border border-red-100 bg-red-50 text-red-600 font-medium hover:bg-red-100 hover:border-red-200 transition-all shadow-sm"
-                      >
-                         <LogOut className="w-4 h-4 mr-2" />
-                         Sign Out
-                      </button>
-                   </div>
                </div>
             </div>
             
-            <p className="text-center text-gray-400 text-sm mt-8">
-               Member ID: <span className="font-mono">{profile._id}</span>
+            <p className="text-center text-gray-400/50 hover:text-gray-400 transition-colors text-xs mt-12 mb-4 font-mono select-all">
+               Member ID: {profile._id}
             </p>
         </div>
       </div>
+
       {/* Write Review Modal */}
       {showReviewModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

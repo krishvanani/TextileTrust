@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
@@ -75,14 +75,22 @@ const formatRole = (role) => {
 };
 
 const Subscription = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const view = searchParams.get('view') || 'marketing'; // 'marketing', 'form', 'success'
   const [isLoading, setIsLoading] = useState(false);
   const [gstError, setGstError] = useState('');
   const [panError, setPanError] = useState('');
+
+  // Redirect if already subscribed
+  useEffect(() => {
+    if (user?.isSubscribed && user?.registeredCompanyId) {
+      navigate(`/company/${user.registeredCompanyId}`, { replace: true });
+    } else if (user?.isSubscribed) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   // Testimonial: starts with a random fallback, replaced by real review if available
   const [testimonial, setTestimonial] = useState(() =>
@@ -106,7 +114,7 @@ const Subscription = () => {
             });
           }
         }
-      } catch (err) {
+      } catch {
         // Keep fallback testimonial — no action needed
       }
     };
@@ -813,120 +821,120 @@ const Subscription = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 reveal">
+          <div className="grid mt-14 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 reveal">
             {/* Feature 1 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <FileText className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                <FileText className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Credit Risk Reports</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Credit Risk Reports</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
                 Access detailed financial health reports, payment history trends, and credit scores before you sign any deal.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Payment timeline analysis
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-indigo-500" /> Payment timeline analysis
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Default probability score
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-indigo-500" /> Default probability score
                 </li>
               </ul>
-            </GlassCard>
+            </div>
 
             {/* Feature 2 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <Search className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                <Search className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Advanced Search Filters</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Advanced Search Filters</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
                 Find exactly who you need. Filter by monthly capacity, machinery type, export certifications, and more.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Filter by machine count
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-blue-500" /> Filter by machine count
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Export-ready status
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-blue-500" /> Export-ready status
                 </li>
               </ul>
-            </GlassCard>
+            </div>
 
             {/* Feature 3 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <Lock className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                <Lock className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Private Trade Network</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
-                Join exclusive, invite-only trade groups for high-value transactions that are hidden from the public marketplace.
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Private Trade Network</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
+                Join exclusive, invite-only trade groups for high-value transactions hidden from the public marketplace.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Verified-only access
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-purple-500" /> Verified-only access
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Direct CEO connections
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-purple-500" /> Direct CEO connections
                 </li>
               </ul>
-            </GlassCard>
+            </div>
 
             {/* Feature 4 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <TrendingUp className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                <TrendingUp className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Market Trends & Analytics</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Market Trends & Analytics</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
                  Stay ahead with real-time price tracking for Yarn, Fabric, and raw materials across major Indian mandis.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Daily price alerts
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-emerald-500" /> Daily price alerts
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Demand forecasting
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-emerald-500" /> Demand forecasting
                 </li>
               </ul>
-            </GlassCard>
+            </div>
 
             {/* Feature 5 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <Shield className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center mb-6 text-rose-600 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300">
+                <Shield className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Legal Verification APIs</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Legal Verification APIs</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
                 Automate your onboarding. Integrate our GST and PAN verification API directly into your ERP or CRM.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Instant GST check
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-rose-500" /> Instant GST check
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Bulk verification
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-rose-500" /> Bulk verification
                 </li>
               </ul>
-            </GlassCard>
+            </div>
 
             {/* Feature 6 */}
-            <GlassCard className="p-8 group">
-              <div className="w-14 h-14 bg-brand-50 rounded-2xl flex items-center justify-center mb-6 text-brand-600 group-hover:bg-brand-600 group-hover:text-white transition-colors">
-                <Globe className="w-7 h-7" />
+            <div className="bg-white rounded-[24px] lg:rounded-[32px] p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
+              <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-6 text-sky-600 group-hover:scale-110 group-hover:bg-sky-600 group-hover:text-white transition-all duration-300">
+                <Globe className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold text-future-carbon mb-3">Global Export Badges</h3>
-              <p className="text-future-steel mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3 tracking-tight">Global Export Badges</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
                 Showcase your compliance certificates (Oeko-Tex, GOTS) with verified digital badges on your profile.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Trust badge for website
+              <ul className="space-y-3 mt-auto">
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-sky-500" /> Trust badge for website
                 </li>
-                <li className="flex items-center text-sm text-future-steel">
-                  <CheckCircle className="w-4 h-4 mr-2 text-indigo-500" /> Verified compliance
+                <li className="flex items-center text-sm font-medium text-gray-700">
+                  <CheckCircle className="w-4 h-4 mr-2.5 text-sky-500" /> Verified compliance
                 </li>
               </ul>
-            </GlassCard>
+            </div>
           </div>
         </div>
       </section>
