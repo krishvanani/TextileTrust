@@ -175,7 +175,7 @@ const Signup = () => {
               <input
                 id="companyName"
                 type="text"
-                placeholder="Company Name"
+                placeholder="Business Owner Name"
                 className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border border-future-smoke rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px]"
                 value={formData.companyName}
                 onChange={handleChange}

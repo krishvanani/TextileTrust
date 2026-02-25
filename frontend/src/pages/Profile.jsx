@@ -184,26 +184,26 @@ const Profile = () => {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-28 sm:pt-32 md:pt-36 pb-12 sm:pb-16 md:pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-[#fafafa] pt-28 sm:pt-32 md:pt-36 pb-8 sm:pb-16 md:pb-20 relative overflow-hidden">
         {/* Background Gradients */}
         <div className="hidden sm:block absolute top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] -z-10 mix-blend-multiply"></div>
         <div className="hidden sm:block absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[150px] -z-10 mix-blend-multiply"></div>
 
-      <div className="container-custom max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="container-custom max-w-6xl mx-auto px-3 sm:px-6">
         <div className="reveal">
             
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            <div className="flex flex-col lg:flex-row items-start gap-4 sm:gap-6 lg:gap-8">
                
                {/* LEFT SIDEBAR (Sticky on Desktop) */}
-               <div className="lg:w-[32%] shrink-0 space-y-6">
-                  <div className="lg:sticky lg:top-28 space-y-6">
+               <div className="w-full lg:w-[32%] shrink-0 space-y-4 sm:space-y-6 self-start">
+                  <div className="lg:sticky lg:top-28 space-y-4 sm:space-y-6">
                      
                      {/* 1. Profile Identity Card */}
-                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8 relative overflow-hidden group">
+                     <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8 relative overflow-hidden group">
                         
                         <div className="relative z-10 flex flex-col items-center text-center">
                            <div 
-                             className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0 cursor-pointer group/avatar mb-5 ring-4 ring-gray-50 shadow-md"
+                             className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full flex-shrink-0 cursor-pointer group/avatar mb-4 sm:mb-5 ring-4 ring-gray-50 shadow-md"
                              onClick={() => fileInputRef.current?.click()}
                            >
                                {profile.profilePhoto ? (
@@ -233,10 +233,10 @@ const Profile = () => {
                                />
                            </div>
                            
-                           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1 tracking-tight">
+                           <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 tracking-tight">
                                {profile.companyName || profile.name || 'User'}
                            </h2>
-                           <div className="flex flex-wrap justify-center items-center gap-2 mb-6">
+                           <div className="flex flex-wrap justify-center items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 uppercase tracking-wider">
                                   {profile.role || 'Member'}
                                </span>
@@ -252,7 +252,7 @@ const Profile = () => {
                            </div>
                            
                            {/* Quick Actions */}
-                           <div className="w-full flex flex-col gap-3">
+                           <div className="w-full flex flex-col gap-2.5 sm:gap-3">
                               {!profile.isSubscribed && (
                                  <Button to="/subscription" variant="primary" fullWidth className="shadow-md shadow-brand-500/20 py-3">
                                    Upgrade to Premium
@@ -271,33 +271,74 @@ const Profile = () => {
                         </div>
                      </div>
 
+                     {/* Company Performance - Mobile Only (shown above Contact Details) */}
+                     {companyStats ? (
+                       <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-200/60 p-4">
+                         <div className="flex items-center justify-between gap-2 mb-5">
+                            <div>
+                               <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center">
+                                  <Activity className="w-4 h-4 mr-2 text-brand-500" /> 
+                                  Company Performance
+                               </h3>
+                               <p className="text-xs text-gray-500 mt-0.5">Overview of your public profile metrics.</p>
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit border ${companyStats.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                               {companyStats.status}
+                            </span>
+                         </div>
+                         <div className="grid grid-cols-3 gap-2">
+                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                               <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Views</div>
+                               <div className="text-xl font-bold text-gray-900 tracking-tight">{companyStats.viewsCount || 0}</div>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                               <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Reviews</div>
+                               <div className="text-xl font-bold text-gray-900 tracking-tight">{companyStats.totalReviews || 0}</div>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                               <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Rating</div>
+                               <div className={`text-xl font-bold tracking-tight flex items-baseline gap-0.5 ${
+                                   companyStats.avgRating >= 4.5 ? 'text-green-600' :
+                                   companyStats.avgRating >= 3.5 ? 'text-lime-500' :
+                                   companyStats.avgRating >= 2.5 ? 'text-yellow-500' :
+                                   companyStats.avgRating >= 1.5 ? 'text-orange-500' : 
+                                   companyStats.avgRating > 0 ? 'text-red-600' : 'text-gray-400'
+                               }`}>
+                                  {companyStats.avgRating > 0 ? companyStats.avgRating.toFixed(1) : 0}
+                                  <span className="text-xs text-gray-400 font-medium">/ 5</span>
+                               </div>
+                            </div>
+                         </div>
+                       </div>
+                     ) : null}
+
                      {/* 2. Contact Information */}
-                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6 flex items-center text-brand-600">
+                     <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8">
+                        <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 sm:mb-6 flex items-center text-brand-600">
                            <User className="w-4 h-4 mr-2" /> Contact details
                         </h3>
-                        <div className="space-y-5">
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                                    <Mail className="w-5 h-5 text-blue-600" />
+                        <div className="space-y-4 sm:space-y-5">
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Email</p>
                                     <p className="text-sm font-medium text-gray-900 truncate" title={profile.email}>{profile.email}</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                                    <Phone className="w-5 h-5 text-indigo-600" />
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Phone</p>
                                     <p className="text-sm font-medium text-gray-900">{profile.contactNumber || profile.phone || '—'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-                                    <Calendar className="w-5 h-5 text-purple-600" />
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">
@@ -316,8 +357,8 @@ const Profile = () => {
                         </div>
                      </div>
 
-                     {/* 3. Account Actions */}
-                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
+                     {/* 3. Account Actions - Desktop Only */}
+                     <div className="hidden lg:block bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8">
                          <div className="flex flex-col gap-3">
                            {profile.companyId && (
                                   <button
@@ -342,47 +383,47 @@ const Profile = () => {
                </div>
 
                {/* RIGHT MAIN CONTENT */}
-               <div className="lg:w-[68%] grow space-y-6">
+               <div className="w-full lg:w-[68%] grow space-y-4 sm:space-y-6">
                   
-                  {/* DASHBOARD & ANALYTICS (Owner Only) */}
+                  {/* DASHBOARD & ANALYTICS (Owner Only) - Desktop Only */}
                   {companyStats ? (
-                      <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
-                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+                      <div className="hidden lg:block bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-4 sm:p-8">
+                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-5 sm:mb-8">
                             <div>
-                               <h3 className="text-lg font-bold text-gray-900 tracking-tight flex items-center">
-                                  <Activity className="w-5 h-5 mr-2 text-brand-500" /> 
+                               <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight flex items-center">
+                                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-brand-500" /> 
                                   Company Performance
                                </h3>
-                               <p className="text-sm text-gray-500 mt-1">Overview of your public profile metrics.</p>
+                               <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Overview of your public profile metrics.</p>
                             </div>
                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit border ${companyStats.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
                                {companyStats.status}
                             </span>
                          </div>
                          
-                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
-                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                         <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                            <div className="bg-gray-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="hidden sm:block absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                   <Eye className="w-12 h-12" />
                                </div>
-                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Profile Views</div>
-                               <div className="text-3xl font-bold text-gray-900 tracking-tight">{companyStats.viewsCount || 0}</div>
+                               <div className="text-[10px] sm:text-xs uppercase font-bold text-gray-500 mb-1 sm:mb-2">Views</div>
+                               <div className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">{companyStats.viewsCount || 0}</div>
                             </div>
                             
-                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
-                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <div className="bg-gray-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="hidden sm:block absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                   <Star className="w-12 h-12 fill-current" />
                                </div>
-                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Total Reviews</div>
-                               <div className="text-3xl font-bold text-gray-900 tracking-tight">{companyStats.totalReviews || 0}</div>
+                               <div className="text-[10px] sm:text-xs uppercase font-bold text-gray-500 mb-1 sm:mb-2">Reviews</div>
+                               <div className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">{companyStats.totalReviews || 0}</div>
                             </div>
                             
-                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 relative overflow-hidden group">
-                               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <div className="bg-gray-50 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-100 relative overflow-hidden group">
+                               <div className="hidden sm:block absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                   <ThumbsUp className="w-12 h-12" />
                                </div>
-                               <div className="text-xs uppercase font-bold text-gray-500 mb-2">Avg. Rating</div>
-                               <div className={`text-3xl font-bold tracking-tight flex items-baseline gap-1 ${
+                               <div className="text-[10px] sm:text-xs uppercase font-bold text-gray-500 mb-1 sm:mb-2">Rating</div>
+                               <div className={`text-xl sm:text-3xl font-bold tracking-tight flex items-baseline gap-0.5 sm:gap-1 ${
                                    companyStats.avgRating >= 4.5 ? 'text-green-600' :
                                    companyStats.avgRating >= 3.5 ? 'text-lime-500' :
                                    companyStats.avgRating >= 2.5 ? 'text-yellow-500' :
@@ -390,59 +431,17 @@ const Profile = () => {
                                    companyStats.avgRating > 0 ? 'text-red-600' : 'text-gray-400'
                                }`}>
                                   {companyStats.avgRating > 0 ? companyStats.avgRating.toFixed(1) : 0}
-                                  <span className="text-base text-gray-400 font-medium">/ 5.0</span>
+                                  <span className="text-xs sm:text-base text-gray-400 font-medium">/ 5</span>
                                </div>
                             </div>
                          </div>
                      </div>
                  ) : null}
 
-                 {/* ACTIVITY HISTORY */}
-                 <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
-                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-                         <h3 className="text-lg font-bold text-gray-900 tracking-tight">Recent Activity</h3>
-                         {activities.length > 5 && (
-                             <button 
-                               onClick={() => setShowAllActivities(!showAllActivities)}
-                               className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors"
-                             >
-                               {showAllActivities ? 'Show Less' : 'View All'}
-                             </button>
-                         )}
-                     </div>
-                     
-                     <div className="space-y-6">
-                        {activities.length > 0 ? (
-                           displayedActivities.map((act) => (
-                             <div key={act._id} className="flex gap-4 group">
-                                <div className="flex flex-col items-center">
-                                   <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-brand-50 group-hover:border-brand-100 transition-colors">
-                                      <Activity className="w-4 h-4 text-indigo-500 group-hover:text-brand-600" />
-                                   </div>
-                                   <div className="w-0.5 h-full bg-gray-100 mt-2 group-last:hidden"></div>
-                                </div>
-                                <div className="pb-6 group-last:pb-0 pt-1.5">
-                                   <p className="text-sm font-medium text-gray-800 leading-snug">{act.message}</p>
-                                   <p className="text-xs text-gray-400 mt-1.5 flex items-center font-medium">
-                                      <Clock className="w-3 h-3 mr-1.5" />
-                                      {new Date(act.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                   </p>
-                                </div>
-                             </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-10 text-gray-400 text-sm">
-                             <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                             No recent activity found.
-                          </div>
-                        )}
-                     </div>
-                 </div>
-
                  {/* MY REVIEWS */}
-                 <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 p-6 sm:p-8">
-                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-                         <h3 className="text-lg font-bold text-gray-900 tracking-tight">Reviews I've Written</h3>
+                 <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-4 sm:p-8">
+                     <div className="flex items-center justify-between mb-5 sm:mb-8 pb-3 sm:pb-4 border-b border-gray-100">
+                         <h3 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">Reviews I've Written</h3>
                          {myReviews.length > 3 && (
                              <button 
                                onClick={() => setShowAllReviews(!showAllReviews)}
@@ -453,13 +452,13 @@ const Profile = () => {
                          )}
                      </div>
                      
-                     <div className="space-y-4">
+                     <div className={`space-y-3 sm:space-y-4 ${showAllReviews ? 'max-h-[500px] overflow-y-auto pr-1' : ''}`}>
                         {myReviews.length > 0 ? (
                           displayedReviews.map((review) => (
-                             <div key={review._id} className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-brand-200/50 transition-colors group">
-                                <div className="flex justify-between items-start mb-3">
-                                   <div className="min-w-0 mr-4">
-                                      <h4 className="font-bold text-gray-900 text-base mb-1.5 group-hover:text-brand-600 transition-colors truncate">{review.companyId?.name || "Unknown Company"}</h4>
+                             <div key={review._id} className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-brand-200/50 transition-colors group">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2.5 sm:mb-3">
+                                   <div className="min-w-0 sm:mr-4">
+                                      <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1 sm:mb-1.5 group-hover:text-brand-600 transition-colors truncate">{review.companyId?.name || "Unknown Company"}</h4>
                                       <div className="flex items-center text-xs text-gray-500">
                                          <div className="flex gap-0.5 mr-2.5">
                                            {[...Array(5)].map((_, idx) => {
@@ -479,13 +478,13 @@ const Profile = () => {
                                    </div>
                                    <button 
                                       onClick={() => openEditReview(review)}
-                                      className="text-sm text-gray-500 hover:text-brand-600 bg-white hover:bg-brand-50 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-brand-200 font-medium flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                                      className="text-xs sm:text-sm text-gray-500 hover:text-brand-600 bg-white hover:bg-brand-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-200 hover:border-brand-200 font-medium flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm shrink-0 w-fit"
                                    >
-                                      <Edit className="w-3.5 h-3.5" />
+                                      <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                       Edit
                                    </button>
                                 </div>
-                                <p className="text-sm text-gray-700 leading-relaxed bg-white/60 p-3 rounded-xl border border-gray-100/50">"{review.comment}"</p>
+                                <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white/60 p-2.5 sm:p-3 rounded-lg sm:rounded-xl border border-gray-100/50">"{review.comment}"</p>
                              </div>
                           ))
                         ) : (
@@ -496,6 +495,29 @@ const Profile = () => {
                         )}
                      </div>
                  </div>
+
+                 {/* Account Actions - Mobile Only (shown below Reviews) */}
+                 <div className="lg:hidden bg-white rounded-2xl shadow-sm border border-gray-200/60 p-5">
+                     <div className="flex flex-col gap-3">
+                       {profile.companyId && (
+                              <button
+                                onClick={() => navigate(`/company/${profile.companyId}`)}
+                                className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all shadow-sm"
+                              >
+                                 <Building2 className="w-4 h-4 mr-2 text-gray-400" />
+                                 View Public Profile
+                              </button>
+                       )}
+                       <button 
+                          onClick={logout}
+                          className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-red-100 bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-all shadow-sm"
+                       >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                       </button>
+                     </div>
+                 </div>
+
 
                </div>
             </div>
