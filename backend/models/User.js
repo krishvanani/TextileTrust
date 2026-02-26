@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const userSchema = mongoose.Schema({
   companyName: {
     type: String,
-    required: [true, 'Please add a company name']
+    default: ''
   },
   email: {
     type: String,
@@ -28,6 +28,7 @@ const userSchema = mongoose.Schema({
   role: {
     type: String,
     enum: [
+      'VIEWER',
       'TRADER', 
       'MANUFACTURER', 
       'WHOLESALER',
@@ -39,8 +40,7 @@ const userSchema = mongoose.Schema({
       'EXPORTER',
       'ADMIN'
     ],
-    required: [true, 'Please specify a role'],
-    default: 'TRADER'
+    default: 'VIEWER'
   },
   isSubscribed: {
     type: Boolean,

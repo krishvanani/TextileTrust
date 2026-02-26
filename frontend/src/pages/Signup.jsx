@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Building2, Phone, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Phone, Eye, EyeOff } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
@@ -10,10 +10,8 @@ import Logo from '../components/ui/Logo';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    companyName: '',
     email: '',
     contactNumber: '',
-    role: '',
     password: '',
     confirmPassword: ''
   });
@@ -30,17 +28,13 @@ const Signup = () => {
     setFormData(prev => ({ ...prev, [id]: value }));
     if (error) setError('');
   };
-  
-  const handleRoleChange = (e) => {
-    setFormData(prev => ({ ...prev, role: e.target.value }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     // Client-side validation
-    if (!formData.companyName.trim() || !formData.email.trim() || !formData.contactNumber.trim() || !formData.password) {
+    if (!formData.email.trim() || !formData.contactNumber.trim() || !formData.password) {
       setError("All fields are required");
       return;
     }
@@ -59,18 +53,14 @@ const Signup = () => {
     
     // Log payload for debugging (can be removed later)
     console.log("Registering payload:", {
-      companyName: formData.companyName,
       email: formData.email,
       contactNumber: formData.contactNumber,
-      role: formData.role,
       // password not logged for security
     });
 
     const result = await register({
-      companyName: formData.companyName.trim(),
       email: formData.email.trim(),
       contactNumber: formData.contactNumber.trim(),
-      role: formData.role, // "TRADER" or "MANUFACTURER" from state
       password: formData.password
     });
     
@@ -91,22 +81,22 @@ const Signup = () => {
         {/* Liquid Ether Effect */}
         <div className="absolute inset-0 z-0">
           <LiquidEther
-            mouseForce={30}
-            cursorSize={120}
+            mouseForce={20}
+            cursorSize={100}
             isViscous={true}
-            viscous={25}
-            iterationsViscous={32}
-            iterationsPoisson={32}
-            dt={0.014}
-            BFECC={true}
-            resolution={0.5}
+            viscous={20}
+            iterationsViscous={8}
+            iterationsPoisson={8}
+            dt={0.016}
+            BFECC={false}
+            resolution={0.25}
             isBounce={false}
             colors={['#1a1a2e', '#16213e', '#0f3460', '#533483', '#9d4edd']}
             autoDemo={true}
-            autoSpeed={0.3}
-            autoIntensity={1.8}
+            autoSpeed={0.2}
+            autoIntensity={1.2}
             takeoverDuration={0.25}
-            autoResumeDelay={2000}
+            autoResumeDelay={3000}
             autoRampDuration={0.6}
             className="absolute inset-0"
           />
@@ -170,21 +160,6 @@ const Signup = () => {
             
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
-                <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-              <input
-                id="companyName"
-                type="text"
-                placeholder="Business Owner Name"
-                className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border border-future-smoke rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px]"
-                value={formData.companyName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
                 <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <input
@@ -211,32 +186,6 @@ const Signup = () => {
                 onChange={handleChange}
                 required
               />
-            </div>
-
-            <div className="relative group">
-               <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
-                <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-              <select
-                id="role"
-                value={formData.role}
-                onChange={handleRoleChange}
-                className="block w-full pl-10 sm:pl-12 pr-10 py-3 sm:py-4 bg-white/50 border border-future-smoke rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 input-glow transition-all duration-300 appearance-none text-sm sm:text-base min-h-[48px]"
-              >
-                <option value="" disabled selected hidden>Business Type</option>
-                <option value="MANUFACTURER">Manufacturer</option>
-                <option value="TRADER">Trader</option>
-                <option value="WHOLESALER">Wholesaler</option>
-                <option value="RETAILER">Retailer</option>
-                <option value="YARN_SUPPLIER">Yarn Supplier</option>
-                <option value="FABRIC_MANUFACTURER">Fabric Manufacturer</option>
-                <option value="DYEING_UNIT">Dyeing Unit</option>
-                <option value="PRINTING_UNIT">Printing Unit</option>
-                <option value="EXPORTER">Exporter</option>
-              </select>
-               <div className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center pointer-events-none text-future-steel">
-                 <ArrowRight className="h-4 w-4 rotate-90" />
-              </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:gap-4">

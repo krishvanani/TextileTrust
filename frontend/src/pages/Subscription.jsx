@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle } from 'lucide-react';
+import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle, ArrowRight } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import Input from '../components/ui/Input';
@@ -111,6 +111,7 @@ const Subscription = () => {
               title: `${formatRole(picked.reviewerRole)}, reviewed ${picked.companyName}`,
               gradient: avatarGradients[Math.floor(Math.random() * avatarGradients.length)],
               rating: picked.rating,
+              photo: picked.reviewerPhoto || null,
             });
           }
         }
@@ -124,37 +125,17 @@ const Subscription = () => {
   // Enable scroll animations - re-run when view changes
   useScrollReveal(view);
 
-  // Helper to convert backend role (YARN_SUPPLIER) to Display/Company format (Yarn Supplier)
-  const formatRoleToBusinessType = (role) => {
-      if (!role) return '';
-      // Handle special cases or general formatting
-      return role
-        .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-  };
 
   const [formData, setFormData] = useState({
     companyName: user?.companyName || '',
     gstNumber: '',
     panNumber: '',
     city: '',
-    businessType: user?.role ? formatRoleToBusinessType(user.role) : '', // Lock to user role
+    businessType: '',
     contactPerson: '',
     contactNumber: user?.contactNumber || '',
     email: user?.email || '',
   });
-
-  // Effect to ensure business type is always synced if user object loads late
-  React.useEffect(() => {
-    if (user?.role) {
-        setFormData(prev => ({
-            ...prev,
-            businessType: formatRoleToBusinessType(user.role)
-        }));
-    }
-  }, [user]);
 
   const validateGST = (gst) => {
     if (!gst) {
@@ -389,22 +370,37 @@ const Subscription = () => {
 
            <div className="relative z-10 pt-12">
               <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl">
-                 <div className="flex items-center mb-4">
-                    <div className="flex text-yellow-400">
-                    {[...Array(testimonial.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
-                    {[...Array(5 - testimonial.rating)].map((_, i) => <Star key={`empty-${i}`} className="w-4 h-4 text-white/20" />)}
-                    </div>
-                 </div>
-                 <p className="text-sm text-gray-300 italic mb-4">"{testimonial.quote}"</p>
-                 <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${testimonial.gradient}`}></div>
-                    <div className="ml-3">
-                       <div className="text-xs font-bold text-white">{testimonial.name}</div>
-                       <div className="text-[10px] text-gray-400">{testimonial.title}</div>
-                    </div>
-                 </div>
-              </div>
-           </div>
+                 <div className="flex items-center gap-0.5 mb-4">
+                     {[...Array(5)].map((_, i) => {
+                       const activeColor = testimonial.rating >= 5 ? 'bg-green-600' :
+                                           testimonial.rating >= 4 ? 'bg-lime-500' :
+                                           testimonial.rating >= 3 ? 'bg-yellow-400' :
+                                           testimonial.rating >= 2 ? 'bg-orange-500' : 'bg-red-600';
+                       return (
+                         <div key={i} className={`w-5 h-5 rounded-[3px] flex items-center justify-center ${i < testimonial.rating ? activeColor : 'bg-white/10'}`}>
+                           <Star className={`w-3 h-3 ${i < testimonial.rating ? 'text-white fill-white' : 'text-white/20'}`} />
+                         </div>
+                       );
+                     })}
+                  </div>
+                  <p className="text-sm text-gray-300 italic mb-4">"{testimonial.quote}"</p>
+                  <div className="flex items-center">
+                     <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/10">
+                       {testimonial.photo ? (
+                         <img src={`http://localhost:5003${testimonial.photo}`} alt={testimonial.name} className="w-full h-full object-cover" />
+                       ) : (
+                         <div className={`w-full h-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center text-white text-sm font-bold`}>
+                           {testimonial.name ? testimonial.name.substring(0, 2).toUpperCase() : 'U'}
+                         </div>
+                       )}
+                     </div>
+                     <div className="ml-3">
+                        <div className="text-xs font-bold text-white">{testimonial.name}</div>
+                        <div className="text-[10px] text-gray-400">{testimonial.title}</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
         </div>
 
         {/* Right Panel - Form */}
@@ -460,34 +456,37 @@ const Subscription = () => {
                     )}
 
                     <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                         <label htmlFor="gstNumber" className="block text-sm font-medium text-future-steel mb-2">GST Number <span className="text-brand-500">*</span></label>
+                         <Input id="gstNumber" placeholder="e.g. 22AAAAA0000A1Z5" value={formData.gstNumber} onChange={handleInputChange} maxLength={15} className={`bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${gstError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : ''}`} required />
+                         {gstError && <p className="mt-2 text-xs text-red-600 font-medium">{gstError}</p>}
+                        </div>
+
+                        <div>
+                         <label htmlFor="panNumber" className="block text-sm font-medium text-future-steel mb-2">PAN Number</label>
+                         <Input id="panNumber" placeholder="e.g. ABCDE1234F" value={formData.panNumber} onChange={handleInputChange} maxLength={10} readOnly className={`bg-white/30 border-future-smoke text-future-steel cursor-not-allowed focus:border-future-smoke focus:ring-0 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${panError || (duplicateWarning?.type === 'PAN') ? 'border-red-500' : ''}`} />
+                         {formData.gstNumber && formData.gstNumber.length >= 12 && (
+                            duplicateWarning?.type === 'PAN' ? (
+                                <p className="mt-2 text-xs text-red-600 flex items-center font-medium animate-pulse"><AlertCircle className="w-3 h-3 mr-1" /> PAN already exists.</p>
+                            ) : (
+                                <p className="mt-2 text-xs text-future-steel flex items-center"><Zap className="w-3 h-3 mr-1" /> Auto-generated from GST.</p>
+                            )
+                         )}
+                         {panError && <p className="mt-2 text-xs text-red-600 font-medium">{panError}</p>}
+                        </div>
+                      </div>
+
                       <div>
                         <label htmlFor="companyName" className="block text-sm font-medium text-future-steel mb-2">Company Name <span className="text-brand-500">*</span></label>
                         <Input id="companyName" placeholder="e.g. Apex Textiles Pvt Ltd" value={formData.companyName} onChange={handleInputChange} className="bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px]" required />
                       </div>
 
                       <div>
-                         <label htmlFor="gstNumber" className="block text-sm font-medium text-future-steel mb-2">GST Number <span className="text-brand-500">*</span></label>
-                         <Input id="gstNumber" placeholder="e.g. 22AAAAA0000A1Z5" value={formData.gstNumber} onChange={handleInputChange} maxLength={15} className={`bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${gstError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : ''}`} required />
-                         {gstError && <p className="mt-2 text-xs text-red-600 font-medium">{gstError}</p>}
-                      </div>
-
-                      <div>
-                         <label htmlFor="panNumber" className="block text-sm font-medium text-future-steel mb-2">PAN Number</label>
-                         <Input id="panNumber" placeholder="e.g. ABCDE1234F" value={formData.panNumber} onChange={handleInputChange} maxLength={10} readOnly className={`bg-white/30 border-future-smoke text-future-steel cursor-not-allowed focus:border-future-smoke focus:ring-0 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${panError || (duplicateWarning?.type === 'PAN') ? 'border-red-500' : ''}`} />
-                         {formData.gstNumber && formData.gstNumber.length >= 12 && (
-                            duplicateWarning?.type === 'PAN' ? (
-                                <p className="mt-2 text-xs text-red-600 flex items-center font-medium animate-pulse"><AlertCircle className="w-3 h-3 mr-1" /> PAN number already exists. Change the GST number.</p>
-                            ) : (
-                                <p className="mt-2 text-xs text-future-steel flex items-center"><Zap className="w-3 h-3 mr-1" /> PAN is auto-generated from GST.</p>
-                            )
-                         )}
-                         {panError && <p className="mt-2 text-xs text-red-600 font-medium">{panError}</p>}
-                      </div>
-
-                      <div>
                          <label htmlFor="businessType" className="block text-sm font-medium text-future-steel mb-2">Business Type <span className="text-brand-500">*</span></label>
                           <div className="relative">
-                            <select id="businessType" value={formData.businessType} disabled={true} className="w-full bg-white/30 border border-future-smoke text-future-steel text-sm rounded-xl block p-3 px-4 transition-all duration-300 outline-none appearance-none cursor-not-allowed min-h-[48px]">
+                            <select id="businessType" value={formData.businessType} onChange={handleInputChange} className="w-full bg-white/50 border border-future-smoke text-future-carbon text-sm rounded-xl block p-3 px-4 transition-all duration-300 outline-none appearance-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 min-h-[48px]" required>
+                              <option value="" disabled hidden>Select Business Type</option>
                               <option value="Manufacturer">Manufacturer</option>
                               <option value="Trader">Trader</option>
                               <option value="Wholesaler">Wholesaler</option>
@@ -498,9 +497,8 @@ const Subscription = () => {
                               <option value="Printing Unit">Printing Unit</option>
                               <option value="Exporter">Exporter</option>
                             </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-future-steel"><Lock className="w-4 h-4" /></div>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-future-steel"><ArrowRight className="w-4 h-4 rotate-90" /></div>
                           </div>
-                          <p className="mt-2 text-xs text-future-steel flex items-center"><Lock className="w-3 h-3 mr-1" /> Linked to your account role.</p>
                       </div>
                     </div>
                   </div>
@@ -595,18 +593,6 @@ const Subscription = () => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">Company Name <span className="text-brand-500">*</span></label>
-                        <Input
-                          id="companyName"
-                          placeholder="e.g. Apex Textiles Pvt Ltd"
-                          value={formData.companyName}
-                          onChange={handleInputChange}
-                          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all rounded-xl py-3 px-4 shadow-sm"
-                          required
-                        />
-                      </div>
-
                       <div>
                          <label htmlFor="gstNumber" className="block text-sm font-medium text-gray-700 mb-2">GST Number <span className="text-brand-500">*</span></label>
                          <Input
@@ -635,15 +621,27 @@ const Subscription = () => {
                          {formData.gstNumber && formData.gstNumber.length >= 12 && (
                             duplicateWarning?.type === 'PAN' ? (
                                 <p className="mt-2 text-xs text-red-600 flex items-center font-medium animate-pulse">
-                                    <AlertCircle className="w-3 h-3 mr-1" /> PAN number already exists. Change the GST number.
+                                    <AlertCircle className="w-3 h-3 mr-1" /> PAN already exists.
                                 </p>
                             ) : (
                                 <p className="mt-2 text-xs text-gray-500 flex items-center">
-                                    <Zap className="w-3 h-3 mr-1" /> PAN is auto-generated from GST.
+                                    <Zap className="w-3 h-3 mr-1" /> Auto-generated from GST.
                                 </p>
                             )
                          )}
                          {panError && <p className="mt-2 text-sm text-red-600 font-medium">{panError}</p>}
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">Company Name <span className="text-brand-500">*</span></label>
+                        <Input
+                          id="companyName"
+                          placeholder="e.g. Apex Textiles Pvt Ltd"
+                          value={formData.companyName}
+                          onChange={handleInputChange}
+                          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all rounded-xl py-3 px-4 shadow-sm"
+                          required
+                        />
                       </div>
 
                       <div>
@@ -652,9 +650,11 @@ const Subscription = () => {
                             <select
                               id="businessType"
                               value={formData.businessType}
-                              disabled={true}
-                              className="w-full bg-gray-100 border border-gray-300 text-gray-500 text-sm rounded-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 block p-3 px-4 transition-all duration-300 outline-none shadow-sm appearance-none cursor-not-allowed"
+                              onChange={handleInputChange}
+                              className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 block p-3 px-4 transition-all duration-300 outline-none shadow-sm appearance-none"
+                              required
                             >
+                              <option value="" disabled hidden>Select Business Type</option>
                               <option value="Manufacturer">Manufacturer</option>
                               <option value="Trader">Trader</option>
                               <option value="Wholesaler">Wholesaler</option>
@@ -666,12 +666,9 @@ const Subscription = () => {
                               <option value="Exporter">Exporter</option>
                             </select>
                             <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
-                              <Lock className="w-4 h-4" />
+                              <ArrowRight className="w-4 h-4 rotate-90" />
                             </div>
                           </div>
-                          <p className="mt-2 text-xs text-gray-500 flex items-center">
-                              <Lock className="w-3 h-3 mr-1" /> Linked to your account role.
-                          </p>
                       </div>
                     </div>
                   </div>

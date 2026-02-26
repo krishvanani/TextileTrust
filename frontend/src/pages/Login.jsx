@@ -54,22 +54,22 @@ const Login = () => {
         {/* Liquid Ether Effect */}
         <div className="absolute inset-0 z-0">
           <LiquidEther
-            mouseForce={30}
-            cursorSize={120}
+            mouseForce={20}
+            cursorSize={100}
             isViscous={true}
-            viscous={25}
-            iterationsViscous={32}
-            iterationsPoisson={32}
-            dt={0.014}
-            BFECC={true}
-            resolution={0.5}
+            viscous={20}
+            iterationsViscous={8}
+            iterationsPoisson={8}
+            dt={0.016}
+            BFECC={false}
+            resolution={0.25}
             isBounce={false}
             colors={['#1a1a2e', '#16213e', '#0f3460', '#533483', '#9d4edd']}
             autoDemo={true}
-            autoSpeed={0.3}
-            autoIntensity={1.8}
+            autoSpeed={0.2}
+            autoIntensity={1.2}
             takeoverDuration={0.25}
-            autoResumeDelay={2000}
+            autoResumeDelay={3000}
             autoRampDuration={0.6}
             className="absolute inset-0"
           />

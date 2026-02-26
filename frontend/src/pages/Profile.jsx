@@ -1,11 +1,64 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload } from 'lucide-react'; // Added Icons
+import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import Button from '../components/ui/Button';
+import Cropper from 'react-easy-crop';
 
 import { useAuth } from '../context/AuthContext';
 import useScrollReveal from '../hooks/useScrollReveal';
-import api from '../services/api'; // Import API
+import api from '../services/api';
+
+// Utility: create cropped image from canvas
+const createCroppedImage = async (imageSrc, croppedAreaPixels, rotation = 0) => {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.addEventListener('load', () => resolve(img));
+    img.addEventListener('error', (e) => reject(e));
+    img.setAttribute('crossOrigin', 'anonymous');
+    img.src = imageSrc;
+  });
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  const rotRad = (rotation * Math.PI) / 180;
+  const { width: bBoxWidth, height: bBoxHeight } = getRotatedBBox(image.width, image.height, rotation);
+
+  canvas.width = bBoxWidth;
+  canvas.height = bBoxHeight;
+
+  ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
+  ctx.rotate(rotRad);
+  ctx.translate(-image.width / 2, -image.height / 2);
+  ctx.drawImage(image, 0, 0);
+
+  const croppedCanvas = document.createElement('canvas');
+  const croppedCtx = croppedCanvas.getContext('2d');
+  croppedCanvas.width = croppedAreaPixels.width;
+  croppedCanvas.height = croppedAreaPixels.height;
+
+  croppedCtx.drawImage(
+    canvas,
+    croppedAreaPixels.x, croppedAreaPixels.y,
+    croppedAreaPixels.width, croppedAreaPixels.height,
+    0, 0,
+    croppedAreaPixels.width, croppedAreaPixels.height
+  );
+
+  return new Promise((resolve) => {
+    croppedCanvas.toBlob((blob) => {
+      resolve(blob);
+    }, 'image/jpeg', 0.92);
+  });
+};
+
+function getRotatedBBox(width, height, rotation) {
+  const rotRad = (rotation * Math.PI) / 180;
+  return {
+    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  };
+}
 
 const Profile = () => {
   const { user, logout, refreshUser } = useAuth();
@@ -35,6 +88,15 @@ const Profile = () => {
   const [showAllActivities, setShowAllActivities] = React.useState(false);
 
   const [uploadingPhoto, setUploadingPhoto] = React.useState(false);
+  const [showPhotoLightbox, setShowPhotoLightbox] = React.useState(false);
+
+  // Crop State
+  const [showCropModal, setShowCropModal] = React.useState(false);
+  const [cropImageSrc, setCropImageSrc] = React.useState(null);
+  const [crop, setCrop] = React.useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = React.useState(1);
+  const [rotation, setRotation] = React.useState(0);
+  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState(null);
 
   // Business Card State
   const [showBCModal, setShowBCModal] = React.useState(false);
@@ -44,19 +106,44 @@ const Profile = () => {
 
   const API_BASE = 'http://localhost:5003';
 
-  const handlePhotoUpload = async (e) => {
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  // Step 1: Select file → show crop modal
+  const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('profilePhoto', file);
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      setCropImageSrc(reader.result);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setRotation(0);
+      setShowCropModal(true);
+    });
+    reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  // Step 2: Confirm crop → upload cropped image
+  const handleCropConfirm = async () => {
+    if (!cropImageSrc || !croppedAreaPixels) return;
     setUploadingPhoto(true);
 
     try {
+      const croppedBlob = await createCroppedImage(cropImageSrc, croppedAreaPixels, rotation);
+      const formData = new FormData();
+      formData.append('profilePhoto', croppedBlob, 'profile.jpg');
+
       await api.post('/auth/profile-photo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       await refreshUser();
+      setShowCropModal(false);
+      setCropImageSrc(null);
     } catch (err) {
       console.error('Photo upload failed:', err);
       alert('Failed to upload photo. Max size is 5MB.');
@@ -204,7 +291,7 @@ const Profile = () => {
                         <div className="relative z-10 flex flex-col items-center text-center">
                            <div 
                              className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full flex-shrink-0 cursor-pointer group/avatar mb-4 sm:mb-5 ring-4 ring-gray-50 shadow-md"
-                             onClick={() => fileInputRef.current?.click()}
+                             onClick={() => profile.profilePhoto ? setShowPhotoLightbox(true) : fileInputRef.current?.click()}
                            >
                                {profile.profilePhoto ? (
                                  <img 
@@ -229,7 +316,7 @@ const Profile = () => {
                                  ref={fileInputRef}
                                  className="hidden"
                                  accept="image/jpeg,image/png,image/gif,image/webp"
-                                 onChange={handlePhotoUpload}
+                                 onChange={handlePhotoSelect}
                                />
                            </div>
                            
@@ -632,7 +719,115 @@ const Profile = () => {
           </div>
         </div>
       )}
-      {/* Business Card Upload Modal */}
+       {/* Profile Photo Lightbox */}
+       {showPhotoLightbox && (
+         <div 
+           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+           onClick={() => setShowPhotoLightbox(false)}
+         >
+           <div className="flex flex-col items-center gap-5" onClick={(e) => e.stopPropagation()}>
+             {/* Large Photo */}
+             <div className="w-56 h-56 sm:w-72 sm:h-72 rounded-full overflow-hidden ring-4 ring-white/10 shadow-2xl">
+               {profile.profilePhoto ? (
+                 <img 
+                   src={`${API_BASE}${profile.profilePhoto}`} 
+                   alt="Profile" 
+                   className="w-full h-full object-cover"
+                 />
+               ) : (
+                 <div className="w-full h-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white text-6xl font-bold">
+                   {profile.companyName ? profile.companyName.charAt(0).toUpperCase() : 'U'}
+                 </div>
+               )}
+             </div>
+             {/* Name */}
+             <p className="text-white font-semibold text-lg">{profile.companyName || profile.name || 'User'}</p>
+             {/* Edit Button */}
+             <button
+               onClick={() => {
+                 setShowPhotoLightbox(false);
+                 fileInputRef.current?.click();
+               }}
+               className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium hover:bg-white/20 transition-all backdrop-blur-sm"
+             >
+               <Camera className="w-4 h-4" />
+               Edit Photo
+             </button>
+           </div>
+         </div>
+       )}
+
+       {/* Photo Crop Modal — Minimal Full-Screen */}
+       {showCropModal && cropImageSrc && (
+         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col">
+           {/* Crop Area — takes all available space */}
+           <div className="flex-1 relative">
+             <Cropper
+               image={cropImageSrc}
+               crop={crop}
+               zoom={zoom}
+               rotation={rotation}
+               aspect={1}
+               cropShape="round"
+               showGrid={false}
+               onCropChange={setCrop}
+               onZoomChange={setZoom}
+               onRotationChange={setRotation}
+               onCropComplete={onCropComplete}
+               style={{
+                 containerStyle: { background: 'transparent' },
+                 mediaStyle: {},
+                 cropAreaStyle: { border: '2px solid rgba(255,255,255,0.3)' }
+               }}
+             />
+           </div>
+
+           {/* Bottom Toolbar */}
+           <div className="bg-black/60 backdrop-blur-md border-t border-white/10 px-6 py-4 space-y-3">
+             {/* Zoom + Rotate Row */}
+             <div className="flex items-center gap-4 max-w-md mx-auto">
+               <ZoomOut className="w-4 h-4 text-white/40 flex-shrink-0" />
+               <input
+                 type="range"
+                 min={1}
+                 max={3}
+                 step={0.05}
+                 value={zoom}
+                 onChange={(e) => setZoom(Number(e.target.value))}
+                 className="flex-1 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
+               />
+               <ZoomIn className="w-4 h-4 text-white/40 flex-shrink-0" />
+               <div className="w-px h-5 bg-white/10"></div>
+               <button
+                 onClick={() => setRotation((r) => (r + 90) % 360)}
+                 className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/50 hover:text-white"
+                 title="Rotate 90°"
+               >
+                 <RotateCw className="w-4 h-4" />
+               </button>
+             </div>
+
+             {/* Action Buttons */}
+             <div className="flex gap-3 max-w-md mx-auto">
+               <button
+                 onClick={() => { setShowCropModal(false); setCropImageSrc(null); }}
+                 className="flex-1 px-4 py-2.5 rounded-xl text-white/70 font-medium hover:text-white hover:bg-white/10 transition-all text-sm"
+               >
+                 Cancel
+               </button>
+               <button
+                 onClick={handleCropConfirm}
+                 disabled={uploadingPhoto}
+                 className="flex-1 px-4 py-2.5 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-100 transition-all disabled:opacity-50"
+               >
+                 {uploadingPhoto ? 'Saving...' : 'Save'}
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Business Card Upload Modal */}
       {showBCModal && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"

@@ -127,6 +127,7 @@ const CompanyProfile = () => {
             reviewerName: r.userId?.name || 'Anonymous',
             reviewerCompany: r.userId?.companyName || null,
             reviewerCompanyId: r.userId?.ownedCompanyId, // Link to company profile
+            reviewerPhoto: r.userId?.profilePhoto || null,
             role: r.userId?.role || 'Trader', 
             isVerified: r.userId?.isSubscribed === true,
             rating: r.rating,
@@ -241,6 +242,7 @@ const CompanyProfile = () => {
            reviewerId: r.userId?._id,
            reviewerName: r.userId?.name || 'Anonymous',
            reviewerCompany: r.userId?.companyName || null,
+           reviewerPhoto: r.userId?.profilePhoto || null,
            role: r.userId?.role || 'Trader',
            isVerified: r.userId?.isSubscribed === true,
            rating: r.rating,
@@ -569,8 +571,12 @@ const CompanyProfile = () => {
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center">
                                 {/* Avatar / Initials */}
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
-                                  {review.reviewerCompany ? review.reviewerCompany.substring(0,2).toUpperCase() : review.reviewerName.substring(0,2).toUpperCase()}
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border overflow-hidden ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
+                                  {review.reviewerPhoto ? (
+                                    <img src={`${API_BASE}${review.reviewerPhoto}`} alt="" className="w-full h-full object-cover" />
+                                  ) : (
+                                    review.reviewerCompany ? review.reviewerCompany.substring(0,2).toUpperCase() : review.reviewerName.substring(0,2).toUpperCase()
+                                  )}
                                 </div>
                                 
                                 <div className="min-w-0">

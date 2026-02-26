@@ -5,10 +5,13 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
   body {
     @apply antialiased text-future-graphite bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] min-h-screen relative; /* Cool Slate Mist */
     font-family: "Outfit", sans-serif;
+    overflow-x: hidden;
   }
 
   h1,

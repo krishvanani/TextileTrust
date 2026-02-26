@@ -64,6 +64,16 @@ const activateSubscription = asyncHandler(async (req, res) => {
         status: 'ACTIVE',
         activatedAt: new Date()
     };
+
+    // Update companyName and role from subscription form data
+    if (req.body.companyName) {
+      user.companyName = req.body.companyName;
+    }
+    if (req.body.businessType) {
+      // Convert display format (e.g. "Yarn Supplier") to enum format (e.g. "YARN_SUPPLIER")
+      const roleValue = req.body.businessType.toUpperCase().replace(/\s+/g, '_');
+      user.role = roleValue;
+    }
     
     // 5. Save User (Persistence)
     const savedUser = await user.save();

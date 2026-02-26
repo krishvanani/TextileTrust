@@ -18,7 +18,7 @@ const getReviews = asyncHandler(async (req, res) => {
 
   // STRICT: Fetch from MongoDB, Sort DESC
   const reviews = await Review.find({ companyId: companyId })
-    .populate('userId', 'name companyName role isSubscribed ownedCompanyId') // Populate user details
+    .populate('userId', 'name companyName role isSubscribed ownedCompanyId profilePhoto') // Populate user details
     .sort({ createdAt: -1 });
 
   res.status(200).json(reviews);
@@ -242,7 +242,7 @@ const getFeaturedReviews = asyncHandler(async (req, res) => {
   // Fetch recent reviews (rating >= 3) with user and company info
   // isHidden: { $ne: true } handles docs where the field may not exist
   const reviews = await Review.find({ rating: { $gte: 3 }, isHidden: { $ne: true } })
-    .populate('userId', 'companyName role')
+    .populate('userId', 'companyName role profilePhoto')
     .populate('companyId', 'name city businessType')
     .sort({ rating: -1, createdAt: -1 })
     .limit(10);
@@ -255,6 +255,7 @@ const getFeaturedReviews = asyncHandler(async (req, res) => {
       comment: r.comment,
       reviewerCompany: r.userId.companyName || 'Verified Business',
       reviewerRole: r.userId.role || 'TRADER',
+      reviewerPhoto: r.userId.profilePhoto || null,
       companyName: r.companyId.name,
       companyCity: r.companyId.city,
       companyType: r.companyId.businessType,

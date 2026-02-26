@@ -38,34 +38,15 @@ const upload = multer({
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   console.log('[DEBUG] Register Request Body:', req.body);
-  const { companyName, email, contactNumber, password, role } = req.body;
+  const { companyName, email, contactNumber, password } = req.body;
 
-  if (!companyName || !email || !contactNumber || !password || !role) {
+  if (!email || !contactNumber || !password) {
     res.status(400);
     throw new Error('Please add all required fields');
   }
 
-  // Validate Role
-  // Validate Role
-  const validRoles = [
-    'TRADER', 
-    'MANUFACTURER', 
-    'WHOLESALER',
-    'RETAILER',
-    'YARN_SUPPLIER',
-    'FABRIC_MANUFACTURER',
-    'DYEING_UNIT',
-    'PRINTING_UNIT',
-    'EXPORTER'
-  ];
-
-  if (!validRoles.includes(role)) {
-    res.status(400);
-    throw new Error('Invalid role');
-  }
-
   // Password Security Validation
-  const passwordError = validatePassword(password, { companyName, email, contactNumber });
+  const passwordError = validatePassword(password, { companyName: companyName || '', email, contactNumber });
   if (passwordError) {
     res.status(400);
     throw new Error(passwordError);
@@ -83,11 +64,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Create user
     const user = await User.create({
-      companyName,
+      companyName: companyName || '',
       email,
       contactNumber,
-      password,
-      role
+      password
     });
 
     if (user) {

@@ -253,7 +253,7 @@ const Navbar = () => {
                           ) : (
                             <User className={`h-4 w-4 mr-2 ${isDarkTheme ? "text-brand-400" : "text-brand-600"}`} />
                           )}
-                          {user.companyName}
+                          {user.companyName || user.email?.split('@')[0] || 'Account'}
                         </button>
                         
                         {/* Dropdown Menu */}
@@ -427,11 +427,11 @@ const Navbar = () => {
                              <img src={`${API_BASE}${user.profilePhoto}`} alt="" className="w-9 h-9 rounded-full object-cover border border-brand-500/30" />
                            ) : (
                              <div className="w-9 h-9 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-300 font-bold border border-brand-500/30 text-sm">
-                               {user.companyName.charAt(0)}
+                               {(user.companyName || user.email || 'U').charAt(0).toUpperCase()}
                              </div>
                            )}
                           <div className="overflow-hidden">
-                             <p className="text-white font-medium text-sm truncate">{user.companyName}</p>
+                             <p className="text-white font-medium text-sm truncate">{user.companyName || user.email?.split('@')[0] || 'Account'}</p>
                              <p className="text-brand-300 text-xs truncate">{user.role}</p>
                           </div>
                        </div>
