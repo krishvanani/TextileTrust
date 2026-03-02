@@ -71,5 +71,13 @@ exports.fetchGSTDetails = async (sessionId, GSTIN, captcha) => {
   // Clean up used session
   delete gstSessions[sessionId];
 
-  return response.data.data || response.data;
+  const result = response.data;
+
+  // Check for any validation error from GST portal
+  const data = result.data || result;
+  if (!data || !data.gstin || result.errorCode || result.error) {
+    throw new Error("invalid GST number or Captcha");
+  }
+
+  return data;
 };

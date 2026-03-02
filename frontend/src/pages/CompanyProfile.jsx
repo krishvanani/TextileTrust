@@ -564,6 +564,7 @@ const CompanyProfile = () => {
                        ))
                     ) : (
                       <>
+                      <div className={`${showAllReviews ? 'max-h-[600px] overflow-y-auto pr-1 scrollbar-thin' : ''} space-y-6`}>
                       {displayedReviews.map((review) => {
                         const isMyReview = review.reviewerId === user?._id;
                         return (
@@ -652,6 +653,7 @@ const CompanyProfile = () => {
                         </div>
                       );
                       })}
+                      </div>
                       
                       {filteredReviews.length > 3 && (
                         <div className="text-center pt-2">
