@@ -46,6 +46,8 @@ const Payment = () => {
             contactPerson: formData.contactPerson,
             officialEmail: formData.email,
             officialPhone: formData.contactNumber,
+            gstDetails: formData.gstDetails || null,
+            isGstVerified: formData.isGstVerified || false,
           };
 
           const companyResponse = await api.post('/companies/register', companyData);
@@ -228,7 +230,14 @@ const Payment = () => {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>GST Number</span>
-                    <span className="font-mono text-xs text-gray-900">{formData.gstNumber}</span>
+                    <span className="font-mono text-xs text-gray-900 flex items-center gap-1.5">
+                      {formData.gstNumber}
+                      {formData.isGstVerified && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                          <CheckCircle className="w-2.5 h-2.5" /> Verified
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Business Type</span>

@@ -30,7 +30,9 @@ const registerCompany = asyncHandler(async (req, res) => {
     businessType,
     contactPerson,
     officialEmail,
-    officialPhone
+    officialPhone,
+    gstDetails,
+    isGstVerified
   } = req.body;
 
   // Normalize Identity Documents
@@ -62,6 +64,8 @@ const registerCompany = asyncHandler(async (req, res) => {
       contactPerson,
       officialEmail,
       officialPhone,
+      gstDetails: gstDetails || null,
+      isGstVerified: isGstVerified || false,
       submittedBy: req.user.id,
       status: 'APPROVED', // Auto-approve for MVP
       verifiedAt: Date.now()

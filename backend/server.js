@@ -42,6 +42,7 @@ app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
+app.use('/api/gst', require('./routes/gstRoutes'));
 
 app.get('/', (req, res) => {
   res.send('TextileTrust API is running...');

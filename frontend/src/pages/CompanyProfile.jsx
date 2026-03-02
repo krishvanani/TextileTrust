@@ -778,6 +778,56 @@ const CompanyProfile = () => {
                  </div>
               </div>
             </div>
+
+               {/* GST Verified Details */}
+               {company?.isGstVerified && company?.gstDetails && (
+                 <div className="mt-3 pt-3 border-t border-gray-100">
+                   <div className="flex items-center gap-1.5 mb-3">
+                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                     <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">GST Verified</span>
+                   </div>
+                   <div className="space-y-2">
+                     {company.gstDetails.lgnm && (
+                       <div className="p-3 bg-white rounded-xl border border-gray-100">
+                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Legal Name</div>
+                         <div className="text-sm text-gray-900 font-medium">{company.gstDetails.lgnm}</div>
+                       </div>
+                     )}
+                     {company.gstDetails.tradeNam && (
+                       <div className="p-3 bg-white rounded-xl border border-gray-100">
+                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Trade Name</div>
+                         <div className="text-sm text-gray-900 font-medium">{company.gstDetails.tradeNam}</div>
+                       </div>
+                     )}
+                     <div className="grid grid-cols-2 gap-2">
+                       {company.gstDetails.rgdt && (
+                         <div className="p-3 bg-white rounded-xl border border-gray-100">
+                           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reg. Date</div>
+                           <div className="text-xs text-gray-900 font-semibold">{company.gstDetails.rgdt}</div>
+                         </div>
+                       )}
+                       {company.gstDetails.sts && (
+                         <div className="p-3 bg-white rounded-xl border border-gray-100">
+                           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">GST Status</div>
+                           <div className={`text-xs font-semibold ${company.gstDetails.sts === 'Active' ? 'text-emerald-700' : 'text-red-700'}`}>{company.gstDetails.sts}</div>
+                         </div>
+                       )}
+                     </div>
+                     {company.gstDetails.ctb && (
+                       <div className="p-3 bg-white rounded-xl border border-gray-100">
+                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Constitution of Business</div>
+                         <div className="text-xs text-gray-900 font-medium">{company.gstDetails.ctb}</div>
+                       </div>
+                     )}
+                     {company.gstDetails.pradr?.adr && (
+                       <div className="p-3 bg-white rounded-xl border border-gray-100">
+                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Registered Address</div>
+                         <div className="text-xs text-gray-900 font-medium leading-relaxed">{company.gstDetails.pradr.adr}</div>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               )}
             
             {isSubscribed && company?.businessCard?.frontImageUrl && (
                 <div className="mt-4 pt-4 border-t border-gray-100">

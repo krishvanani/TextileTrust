@@ -1,6 +1,11 @@
 let sessionId = "";
 
-window.onload = fetchCaptcha;
+window.onload = function () {
+  fetchCaptcha();
+
+  // Refresh captcha when user clicks into the captcha input field
+  document.getElementById("captchaInput").addEventListener("focus", fetchCaptcha);
+};
 
 async function fetchCaptcha() {
   const res = await fetch("/api/v1/getCaptcha");

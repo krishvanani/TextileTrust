@@ -95,6 +95,14 @@ const companySchema = mongoose.Schema({
     enum: ['TRUSTED', 'CAUTION', 'LOW_TRUST', 'UNRATED'],
     default: 'UNRATED'
   },
+  gstDetails: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  isGstVerified: {
+    type: Boolean,
+    default: false
+  },
   lastReviewAt: {
     type: Date
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle, ArrowRight } from 'lucide-react';
+import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import Input from '../components/ui/Input';
@@ -9,6 +9,7 @@ import Logo from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import useScrollReveal from '../hooks/useScrollReveal';
 import api from '../services/api';
+import axios from 'axios';
 
 <Silk
   speed={5}
@@ -137,6 +138,102 @@ const Subscription = () => {
     email: user?.email || '',
   });
 
+  // ── GST Verification State ──
+  const [gstSessionId, setGstSessionId] = useState('');
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [gstVerifyStatus, setGstVerifyStatus] = useState('idle'); // 'idle' | 'captcha' | 'loading' | 'success' | 'error'
+  const [gstVerifyError, setGstVerifyError] = useState('');
+  const [gstDetails, setGstDetails] = useState(null);
+  const [isGstVerified, setIsGstVerified] = useState(false);
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+
+  const GST_API_BASE = 'http://localhost:5003/api/gst';
+
+  // Fetch captcha from the GST verification API
+  const fetchGstCaptcha = async () => {
+    setCaptchaLoading(true);
+    setCaptchaInput('');
+    setGstVerifyError('');
+    try {
+      const res = await axios.get(`${GST_API_BASE}/captcha`);
+      setGstSessionId(res.data.sessionId);
+      setCaptchaImage(res.data.image);
+      setGstVerifyStatus('captcha');
+    } catch (err) {
+      console.error('Captcha fetch failed:', err);
+      setGstVerifyError('Failed to load captcha. Please try again.');
+      setGstVerifyStatus('error');
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  // Verify GST using captcha
+  const verifyGst = async () => {
+    if (!captchaInput.trim()) {
+      setGstVerifyError('Please enter the captcha.');
+      return;
+    }
+    setGstVerifyStatus('loading');
+    setGstVerifyError('');
+    try {
+      const res = await axios.post(`${GST_API_BASE}/verify`, {
+        sessionId: gstSessionId,
+        GSTIN: formData.gstNumber,
+        captcha: captchaInput
+      });
+
+      console.log('GST API raw response:', JSON.stringify(res.data, null, 2));
+
+      // The backend returns the GST data directly (already unwrapped)
+      // But handle both cases: res.data could be { gstin, lgnm, ... } directly
+      // or could be wrapped as { data: { gstin, lgnm, ... } }
+      let data = res.data;
+      if (data && data.data && data.data.gstin) {
+        data = data.data; // Unwrap if nested
+      }
+
+      console.log('Parsed GST data:', data);
+
+      // Check for error from gov API
+      if (!data || !data.gstin || data.errorCode || data.error) {
+        setGstVerifyError('Invalid GST or captcha. Please try again.');
+        setGstVerifyStatus('error');
+        fetchGstCaptcha(); // Auto-refresh captcha
+        return;
+      }
+
+      // Success — set details and autofill
+      console.log('GST Verified! Trade Name:', data.tradeNam, 'Legal Name:', data.lgnm);
+      setGstDetails(data);
+      setIsGstVerified(true);
+      setGstVerifyStatus('success');
+
+      // Autofill company name from trade name or legal name
+      const autoName = data.tradeNam || data.lgnm || '';
+      if (autoName) {
+        setFormData(prev => ({ ...prev, companyName: autoName }));
+      }
+    } catch (err) {
+      console.error('GST verification failed:', err);
+      setGstVerifyError(err.response?.data?.error || 'Verification failed. Please try again.');
+      setGstVerifyStatus('error');
+      fetchGstCaptcha();
+    }
+  };
+
+  // Reset GST verification when GST number changes
+  const resetGstVerification = () => {
+    setGstVerifyStatus('idle');
+    setGstDetails(null);
+    setIsGstVerified(false);
+    setCaptchaImage('');
+    setCaptchaInput('');
+    setGstSessionId('');
+    setGstVerifyError('');
+  };
+
   const validateGST = (gst) => {
     if (!gst) {
       setGstError('');
@@ -238,6 +335,11 @@ const Subscription = () => {
       const uppercaseValue = value.toUpperCase();
       let newFormData = { ...formData, [id]: uppercaseValue };
       
+      // Reset GST verification if number changes
+      if (isGstVerified || gstVerifyStatus !== 'idle') {
+        resetGstVerification();
+      }
+
       // Auto-extract PAN from GST
       if (uppercaseValue.length >= 12) {
           const extractedPan = uppercaseValue.substring(2, 12);
@@ -255,7 +357,14 @@ const Subscription = () => {
 
       setFormData(newFormData);
       validateGST(uppercaseValue);
-      if (uppercaseValue.length === 15) checkIdentity(id, uppercaseValue);
+      if (uppercaseValue.length === 15) {
+        checkIdentity(id, uppercaseValue);
+        // Auto-fetch captcha when GST is complete and valid
+        const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (gstRegex.test(uppercaseValue)) {
+          fetchGstCaptcha();
+        }
+      }
     } else if (id === 'panNumber') {
       const uppercaseValue = value.toUpperCase();
       setFormData({ ...formData, [id]: uppercaseValue });
@@ -284,8 +393,8 @@ const Subscription = () => {
         return;
       }
 
-      // Redirect to Payment Gateway page with form data
-      navigate('/payment', { state: { formData } });
+      // Redirect to Payment Gateway page with form data + GST verification info
+      navigate('/payment', { state: { formData: { ...formData, gstDetails: gstDetails || null, isGstVerified } } });
     } catch (error) {
        console.error("Validation failed:", error);
     } finally {
@@ -456,30 +565,143 @@ const Subscription = () => {
                     )}
 
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                         <label htmlFor="gstNumber" className="block text-sm font-medium text-future-steel mb-2">GST Number <span className="text-brand-500">*</span></label>
-                         <Input id="gstNumber" placeholder="e.g. 22AAAAA0000A1Z5" value={formData.gstNumber} onChange={handleInputChange} maxLength={15} className={`bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${gstError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : ''}`} required />
-                         {gstError && <p className="mt-2 text-xs text-red-600 font-medium">{gstError}</p>}
-                        </div>
+                      <div>
+                        <label htmlFor="gstNumber" className="block text-sm font-medium text-future-steel mb-2">GST Number <span className="text-brand-500">*</span></label>
+                        <Input id="gstNumber" placeholder="e.g. 22AAAAA0000A1Z5" value={formData.gstNumber} onChange={handleInputChange} maxLength={15} className={`bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${gstError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : ''}`} required />
+                        {gstError && <p className="mt-2 text-xs text-red-600 font-medium">{gstError}</p>}
+                        {formData.panNumber && (
+                          <div className="mt-3 flex items-center gap-2">
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide border transition-all duration-300 ${
+                              duplicateWarning?.type === 'PAN'
+                                ? 'bg-red-50 border-red-200 text-red-700'
+                                : panError
+                                  ? 'bg-red-50 border-red-200 text-red-700'
+                                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            }`}>
 
-                        <div>
-                         <label htmlFor="panNumber" className="block text-sm font-medium text-future-steel mb-2">PAN Number</label>
-                         <Input id="panNumber" placeholder="e.g. ABCDE1234F" value={formData.panNumber} onChange={handleInputChange} maxLength={10} readOnly className={`bg-white/30 border-future-smoke text-future-steel cursor-not-allowed focus:border-future-smoke focus:ring-0 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${panError || (duplicateWarning?.type === 'PAN') ? 'border-red-500' : ''}`} />
-                         {formData.gstNumber && formData.gstNumber.length >= 12 && (
-                            duplicateWarning?.type === 'PAN' ? (
-                                <p className="mt-2 text-xs text-red-600 flex items-center font-medium animate-pulse"><AlertCircle className="w-3 h-3 mr-1" /> PAN already exists.</p>
+                              PAN: {formData.panNumber}
+                            </div>
+                            {duplicateWarning?.type === 'PAN' ? (
+                              <span className="text-xs text-red-600 font-medium animate-pulse flex items-center"><AlertCircle className="w-3 h-3 mr-1" />Already exists</span>
                             ) : (
-                                <p className="mt-2 text-xs text-future-steel flex items-center"><Zap className="w-3 h-3 mr-1" /> Auto-generated from GST.</p>
-                            )
-                         )}
-                         {panError && <p className="mt-2 text-xs text-red-600 font-medium">{panError}</p>}
-                        </div>
+                              <span className="text-xs text-future-steel">Auto-extracted from GST</span>
+                            )}
+                          </div>
+                        )}
+                        {panError && <p className="mt-2 text-xs text-red-600 font-medium">{panError}</p>}
+
+                        {/* ── GST Verification Section (Mobile) ── */}
+                        {(gstVerifyStatus !== 'idle' || captchaImage) && (
+                          <div className="mt-4 p-4 rounded-xl border border-white/20 bg-white/30 backdrop-blur-sm space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-bold text-future-carbon uppercase tracking-wider flex items-center gap-1.5">
+                                <ShieldCheck className="w-3.5 h-3.5 text-brand-500" /> GST Verification
+                              </h4>
+                              {gstVerifyStatus !== 'success' && (
+                                <button type="button" onClick={fetchGstCaptcha} disabled={captchaLoading} className="text-xs text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1 transition-colors">
+                                  <RefreshCw className={`w-3 h-3 ${captchaLoading ? 'animate-spin' : ''}`} /> Refresh
+                                </button>
+                              )}
+                            </div>
+
+                            {gstVerifyStatus === 'success' ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                                  <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                  <span className="text-sm font-semibold text-emerald-800">GST Verified Successfully</span>
+                                </div>
+                                {gstDetails && (
+                                  <div className="grid grid-cols-1 gap-2.5">
+                                    {gstDetails.lgnm && (
+                                      <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                        <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Legal Name</span>
+                                        <p className="text-sm font-semibold text-future-carbon mt-0.5">{gstDetails.lgnm}</p>
+                                      </div>
+                                    )}
+                                    {gstDetails.tradeNam && (
+                                      <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                        <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Trade Name</span>
+                                        <p className="text-sm font-semibold text-future-carbon mt-0.5">{gstDetails.tradeNam}</p>
+                                      </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                      {gstDetails.rgdt && (
+                                        <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                          <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Reg. Date</span>
+                                          <p className="text-sm font-semibold text-future-carbon mt-0.5">{gstDetails.rgdt}</p>
+                                        </div>
+                                      )}
+                                      {gstDetails.sts && (
+                                        <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                          <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Status</span>
+                                          <p className={`text-sm font-semibold mt-0.5 ${gstDetails.sts === 'Active' ? 'text-emerald-700' : 'text-red-700'}`}>{gstDetails.sts}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {gstDetails.ctb && (
+                                      <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                        <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Business Type</span>
+                                        <p className="text-sm font-semibold text-future-carbon mt-0.5">{gstDetails.ctb}</p>
+                                      </div>
+                                    )}
+                                    {gstDetails.pradr?.adr && (
+                                      <div className="p-3 rounded-lg bg-white/60 border border-white/30">
+                                        <span className="text-[10px] font-bold text-future-steel uppercase tracking-wider">Address</span>
+                                        <p className="text-sm font-semibold text-future-carbon mt-0.5 leading-relaxed">{gstDetails.pradr.adr}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {captchaImage && (
+                                  <div className="flex items-center gap-3">
+                                    <img src={captchaImage} alt="CAPTCHA" className="h-12 rounded-lg border border-white/30 bg-white" />
+                                  </div>
+                                )}
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Enter captcha"
+                                    value={captchaInput}
+                                    onChange={(e) => setCaptchaInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), verifyGst())}
+                                    className="flex-1 bg-white/50 border border-future-smoke text-future-carbon placeholder:text-future-steel rounded-xl py-2.5 px-3 text-sm focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all min-h-[42px]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={verifyGst}
+                                    disabled={gstVerifyStatus === 'loading'}
+                                    className="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-60 flex items-center gap-1.5 min-h-[42px] shadow-lg shadow-brand-500/20"
+                                  >
+                                    {gstVerifyStatus === 'loading' ? (
+                                      <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                                    ) : (
+                                      <><ShieldCheck className="w-4 h-4" /> Verify</>
+                                    )}
+                                  </button>
+                                </div>
+                                {gstVerifyError && (
+                                  <p className="text-xs text-red-600 font-medium flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" /> {gstVerifyError}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {isGstVerified && (
+                          <p className="mt-3 text-xs font-semibold text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> GST Verified</p>
+                        )}
                       </div>
 
                       <div>
                         <label htmlFor="companyName" className="block text-sm font-medium text-future-steel mb-2">Company Name <span className="text-brand-500">*</span></label>
-                        <Input id="companyName" placeholder="e.g. Apex Textiles Pvt Ltd" value={formData.companyName} onChange={handleInputChange} className="bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px]" required />
+                        <Input id="companyName" placeholder="e.g. Apex Textiles Pvt Ltd" value={formData.companyName} onChange={handleInputChange} className={`bg-white/50 border-future-smoke text-future-carbon placeholder:text-future-steel focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all rounded-xl py-3 px-4 text-sm sm:text-base min-h-[48px] ${isGstVerified ? 'border-emerald-300 bg-emerald-50/30' : ''}`} required />
+                        {isGstVerified && formData.companyName && (
+                          <p className="mt-1.5 text-[11px] text-emerald-600 font-medium">Autofilled from GST verification</p>
+                        )}
                       </div>
 
                       <div>
@@ -593,7 +815,7 @@ const Subscription = () => {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
+                      <div className="md:col-span-2">
                          <label htmlFor="gstNumber" className="block text-sm font-medium text-gray-700 mb-2">GST Number <span className="text-brand-500">*</span></label>
                          <Input
                           id="gstNumber"
@@ -605,31 +827,130 @@ const Subscription = () => {
                           required
                          />
                          {gstError && <p className="mt-2 text-sm text-red-600 font-medium">{gstError}</p>}
-                      </div>
+                         {formData.panNumber && (
+                           <div className="mt-3 flex items-center gap-2.5">
+                             <div className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold tracking-wide border transition-all duration-300 ${
+                               duplicateWarning?.type === 'PAN'
+                                 ? 'bg-red-50 border-red-200 text-red-700'
+                                 : panError
+                                   ? 'bg-red-50 border-red-200 text-red-700'
+                                   : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                             }`}>
 
-                      <div>
-                         <label htmlFor="panNumber" className="block text-sm font-medium text-gray-700 mb-2">PAN Number</label>
-                         <Input
-                          id="panNumber"
-                          placeholder="e.g. ABCDE1234F"
-                          value={formData.panNumber}
-                          onChange={handleInputChange}
-                          maxLength={10}
-                          readOnly
-                          className={`bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed focus:border-gray-300 focus:ring-0 transition-all rounded-xl py-3 px-4 shadow-sm ${panError || (duplicateWarning?.type === 'PAN') ? 'border-red-500' : ''}`}
-                         />
-                         {formData.gstNumber && formData.gstNumber.length >= 12 && (
-                            duplicateWarning?.type === 'PAN' ? (
-                                <p className="mt-2 text-xs text-red-600 flex items-center font-medium animate-pulse">
-                                    <AlertCircle className="w-3 h-3 mr-1" /> PAN already exists.
-                                </p>
-                            ) : (
-                                <p className="mt-2 text-xs text-gray-500 flex items-center">
-                                    <Zap className="w-3 h-3 mr-1" /> Auto-generated from GST.
-                                </p>
-                            )
+                               PAN: {formData.panNumber}
+                             </div>
+                             {duplicateWarning?.type === 'PAN' ? (
+                               <span className="text-xs text-red-600 font-medium animate-pulse flex items-center"><AlertCircle className="w-3.5 h-3.5 mr-1" />Already exists</span>
+                             ) : (
+                               <span className="text-sm text-gray-500">Auto-extracted from GST</span>
+                             )}
+                           </div>
                          )}
                          {panError && <p className="mt-2 text-sm text-red-600 font-medium">{panError}</p>}
+
+                         {/* ── GST Verification Section (Desktop) ── */}
+                         {(gstVerifyStatus !== 'idle' || captchaImage) && (
+                           <div className="mt-5 p-5 rounded-xl border border-gray-200 bg-gray-50/80 space-y-4">
+                             <div className="flex items-center justify-between">
+                               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                 <ShieldCheck className="w-4 h-4 text-brand-500" /> GST Verification
+                               </h4>
+                               {gstVerifyStatus !== 'success' && (
+                                 <button type="button" onClick={fetchGstCaptcha} disabled={captchaLoading} className="text-xs text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1.5 transition-colors">
+                                   <RefreshCw className={`w-3.5 h-3.5 ${captchaLoading ? 'animate-spin' : ''}`} /> Refresh Captcha
+                                 </button>
+                               )}
+                             </div>
+
+                             {gstVerifyStatus === 'success' ? (
+                               <div className="space-y-4">
+                                 <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                                   <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                   <span className="text-sm font-semibold text-emerald-800">GST Verified Successfully</span>
+                                 </div>
+                                 {gstDetails && (
+                                   <div className="grid grid-cols-2 gap-3">
+                                     {gstDetails.lgnm && (
+                                       <div className="col-span-2 p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Legal Name</span>
+                                         <p className="text-sm font-semibold text-gray-900 mt-1">{gstDetails.lgnm}</p>
+                                       </div>
+                                     )}
+                                     {gstDetails.tradeNam && (
+                                       <div className="col-span-2 p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Trade Name</span>
+                                         <p className="text-sm font-semibold text-gray-900 mt-1">{gstDetails.tradeNam}</p>
+                                       </div>
+                                     )}
+                                     {gstDetails.rgdt && (
+                                       <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Registration Date</span>
+                                         <p className="text-sm font-semibold text-gray-900 mt-1">{gstDetails.rgdt}</p>
+                                       </div>
+                                     )}
+                                     {gstDetails.sts && (
+                                       <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</span>
+                                         <p className={`text-sm font-semibold mt-1 ${gstDetails.sts === 'Active' ? 'text-emerald-700' : 'text-red-700'}`}>{gstDetails.sts}</p>
+                                       </div>
+                                     )}
+                                     {gstDetails.ctb && (
+                                       <div className="col-span-2 p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Constitution of Business</span>
+                                         <p className="text-sm font-semibold text-gray-900 mt-1">{gstDetails.ctb}</p>
+                                       </div>
+                                     )}
+                                     {gstDetails.pradr?.adr && (
+                                       <div className="col-span-2 p-3.5 rounded-xl bg-white border border-gray-200 shadow-sm">
+                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Registered Address</span>
+                                         <p className="text-sm font-semibold text-gray-900 mt-1 leading-relaxed">{gstDetails.pradr.adr}</p>
+                                       </div>
+                                     )}
+                                   </div>
+                                 )}
+                               </div>
+                             ) : (
+                               <div className="space-y-4">
+                                 {captchaImage && (
+                                   <div className="flex items-center gap-4">
+                                     <img src={captchaImage} alt="CAPTCHA" className="h-14 rounded-xl border border-gray-300 bg-white shadow-sm" />
+                                     <span className="text-xs text-gray-500">Enter the characters shown</span>
+                                   </div>
+                                 )}
+                                 <div className="flex gap-3">
+                                   <input
+                                     type="text"
+                                     placeholder="Enter captcha text"
+                                     value={captchaInput}
+                                     onChange={(e) => setCaptchaInput(e.target.value)}
+                                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), verifyGst())}
+                                     className="flex-1 bg-white border border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-xl py-3 px-4 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all shadow-sm"
+                                   />
+                                   <button
+                                     type="button"
+                                     onClick={verifyGst}
+                                     disabled={gstVerifyStatus === 'loading'}
+                                     className="px-6 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-60 flex items-center gap-2 shadow-xl shadow-brand-500/20 hover:shadow-brand-500/30 transform hover:-translate-y-0.5"
+                                   >
+                                     {gstVerifyStatus === 'loading' ? (
+                                       <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                                     ) : (
+                                       <><ShieldCheck className="w-4 h-4" /> Verify GST</>
+                                     )}
+                                   </button>
+                                 </div>
+                                 {gstVerifyError && (
+                                   <p className="text-sm text-red-600 font-medium flex items-center gap-1.5">
+                                     <AlertCircle className="w-3.5 h-3.5" /> {gstVerifyError}
+                                   </p>
+                                 )}
+                               </div>
+                             )}
+                           </div>
+                         )}
+                         {isGstVerified && (
+                           <p className="mt-3 text-xs font-semibold text-emerald-600 flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> GST Verified</p>
+                         )}
                       </div>
 
                       <div className="md:col-span-2">
@@ -639,9 +960,12 @@ const Subscription = () => {
                           placeholder="e.g. Apex Textiles Pvt Ltd"
                           value={formData.companyName}
                           onChange={handleInputChange}
-                          className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all rounded-xl py-3 px-4 shadow-sm"
+                          className={`bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all rounded-xl py-3 px-4 shadow-sm ${isGstVerified ? 'border-emerald-400 bg-emerald-50/50' : ''}`}
                           required
                         />
+                        {isGstVerified && formData.companyName && (
+                          <p className="mt-1.5 text-xs text-emerald-600 font-medium">Autofilled from GST verification</p>
+                        )}
                       </div>
 
                       <div>
