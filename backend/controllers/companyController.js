@@ -113,7 +113,7 @@ const getCompanyById = asyncHandler(async (req, res) => {
     // 1. Visitor has a company (req.user.ownedCompanyId exists)
     // 2. Visitor is NOT viewing their own company
     // 3. Visitor hasn't viewed this company recently (24h)
-    const visitorHasCompany = req.user.ownedCompanyId;
+    const visitorHasCompany = req.user?.ownedCompanyId;
     const isVisitingOwnCompany = visitorHasCompany && visitorHasCompany.toString() === company._id.toString();
 
     if (visitorHasCompany && !isVisitingOwnCompany) {

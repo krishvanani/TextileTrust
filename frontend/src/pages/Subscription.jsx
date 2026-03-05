@@ -1266,7 +1266,7 @@ const Subscription = () => {
              <div className="relative z-10">
                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to upgrade your business?</h2>
                <p className="text-brand-100 text-lg mb-10 max-w-2xl mx-auto font-light">
-                 Join over 5,000 premium members who trust TextileTrust for their daily business intelligence.
+                 Join verified textile businesses who trust TextileTrust for their daily business intelligence.
                </p>
                <div className="flex flex-col sm:flex-row justify-center gap-4">
                  <Button 

@@ -10,7 +10,7 @@ const {
   uploadBusinessCard,
   uploadMiddleware
 } = require('../controllers/companyController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
 router.post('/register', protect, registerCompany);
 // Business Card Upload Route
@@ -28,6 +28,6 @@ router.get('/search', searchCompanies);
 router.get('/suggestions', getSearchSuggestions); // Public access for landing page UX
 router.get('/trending', getTrendingCompanies); // Public access for Trending Feature
 router.get('/check-identity', protect, checkCompanyIdentity); // Early validation
-router.get('/:id', protect, getCompanyById);
+router.get('/:id', optionalAuth, getCompanyById);
 
 module.exports = router;

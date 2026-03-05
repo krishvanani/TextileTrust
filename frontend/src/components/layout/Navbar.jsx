@@ -34,7 +34,6 @@ const Navbar = () => {
   // Initialize theme - Always Dark for consistent style
   const isDarkTheme = true; 
   const [scrolled, setScrolled] = useState(false); // Track scroll for moving effect
-  const [scrollProgress, setScrollProgress] = useState(0); // Reading progress bar
   
   // Adaptive Scroll Logic & Auto-Close
   useEffect(() => {
@@ -46,11 +45,6 @@ const Navbar = () => {
       // 1. Check Scroll Position (Trigger "moving" effect)
       setScrolled(currentScrollY > 20);
 
-      // Calculate scroll progress
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? (currentScrollY / docHeight) * 100 : 0;
-      setScrollProgress(Math.min(progress, 100));
-      
       // 2. Auto-close Search and Profile Menu on Scroll (User Request)
       // Close if scrolled more than 10px from where we started
       if (isSearchOpen && Math.abs(currentScrollY - initialScrollY) > 10) {
@@ -140,15 +134,6 @@ const Navbar = () => {
 
   return (
     <nav className={navClasses}>
-      {/* Reading Progress Bar */}
-      {!isAuthPage && (
-        <div className="absolute top-0 left-0 w-full h-[2px] z-[60]">
-          <div 
-            className="h-full bg-gradient-to-r from-brand-400 via-brand-500 to-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" 
-            style={{ width: `${scrollProgress}%`, transition: 'width 0.1s linear' }}
-          />
-        </div>
-      )}
       <div className={isAuthPage ? "w-full px-6 flex justify-between items-center relative" : "container-custom relative"}>
         <div className="flex justify-between items-center w-full">
           {/* Logo - Always Present and Shared */}

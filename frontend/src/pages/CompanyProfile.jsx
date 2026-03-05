@@ -704,17 +704,17 @@ const CompanyProfile = () => {
                       </div>
                       <h3 className="text-lg font-bold text-gray-900 mb-2">Premium Intelligence Locked</h3>
                        <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                        Join 2,000+ businesses who rely on TextileTrust for verified trade data. Unlock detailed ratings, reviews, and risk analysis.
+                        Join verified textile traders who rely on TextileTrust to reduce payment risk and improve trade transparency.
                       </p>
                       <Button 
                         variant="primary" 
                         onClick={() => setShowSubModal(true)}
                         className="w-full shadow-lg shadow-brand-600/20"
                       >
-                        Unlock Full Report
+                        View Premium Insights
                       </Button>
                       <p className="mt-4 text-xs text-gray-400 font-medium">
-                        Instant access • Cancel anytime
+                        No long-term contracts • Cancel anytime
                       </p>
                    </div>
                 </div>

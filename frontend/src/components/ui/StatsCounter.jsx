@@ -56,10 +56,10 @@ const StatsCounter = () => {
       try {
         const { data } = await api.get('/stats');
         setStats([
-          { value: data.companiesVerified || 0, suffix: '+', label: 'Companies Verified' },
-          { value: data.reviewsSubmitted || 0, suffix: '+', label: 'Reviews Submitted' },
+          { value: data.companiesVerified || 0, suffix: '+', label: 'Textile Businesses Verified' },
+          { value: data.reviewsSubmitted || 0, suffix: '+', label: 'Verified Reviews' },
           { value: data.satisfactionRate || 0, suffix: '%', label: 'Satisfaction Rate' },
-          { value: data.monthlyViews || 0, suffix: '+', label: 'Monthly Views' },
+          { value: data.monthlyViews || 0, suffix: '+', label: 'Profile Views Last Month' },
         ]);
       } catch (err) {
         console.error('Failed to fetch platform stats:', err);

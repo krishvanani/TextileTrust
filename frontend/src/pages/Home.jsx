@@ -436,7 +436,7 @@ const LandingPage = () => {
                 Ready to verify your next partner?
               </h2>
               <p className="text-xl text-brand-100 mb-12 max-w-xl mx-auto font-light">
-                Join thousands of textile professionals who trust TextileTrust for their due diligence.
+                Join verified textile professionals who trust TextileTrust for their due diligence.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button to="/signup" variant="primary" className="py-4 px-12 text-lg shadow-2xl shadow-brand-500/40 hover:shadow-brand-500/50 border border-white/10">
