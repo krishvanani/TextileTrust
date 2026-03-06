@@ -98,7 +98,10 @@ const CompanyProfile = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showBCModal, setShowBCModal] = useState(false);
-  
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   
   // Review Form State
@@ -313,6 +316,36 @@ const CompanyProfile = () => {
   };
 
 
+  // Edit Profile Handlers
+  const BUSINESS_TYPES = ['Manufacturer', 'Trader', 'Wholesaler', 'Retailer', 'Yarn Supplier', 'Fabric Manufacturer', 'Dyeing Unit', 'Printing Unit', 'Exporter'];
+
+  const openEditProfile = () => {
+    setEditForm({
+      name: company?.name || '',
+      city: company?.city || '',
+      businessType: company?.businessType || '',
+      contactPerson: company?.contactPerson || '',
+      officialEmail: company?.officialEmail || '',
+      officialPhone: company?.officialPhone || ''
+    });
+    setEditError('');
+    setShowEditModal(true);
+  };
+
+  const saveEditProfile = async (e) => {
+    e.preventDefault();
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const res = await api.put(`/companies/${id}`, editForm);
+      setCompany(res.data);
+      setShowEditModal(false);
+    } catch (err) {
+      setEditError(err.response?.data?.message || 'Failed to update profile.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-20 bg-white">
@@ -402,10 +435,19 @@ const CompanyProfile = () => {
                 {/* Action Buttons */}
                 <div className="flex gap-2 sm:gap-3 mt-1">
                   {isOwner ? (
+                    <>
                     <div className="flex items-center px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-500 font-medium text-sm">
                       <ShieldCheck className="w-4 h-4 mr-2 text-green-500" />
                       You manage this profile
                     </div>
+                    <button
+                      onClick={openEditProfile}
+                      className="flex items-center px-4 py-2 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 font-semibold text-sm hover:bg-brand-100 hover:border-brand-300 transition-all shadow-sm gap-1.5"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </button>
+                    </>
                   ) : (
                     <>
                     <Button 
@@ -1126,6 +1168,129 @@ const CompanyProfile = () => {
                      <p className="text-gray-900 text-sm font-bold tracking-widest uppercase text-center border-b border-gray-300 pb-1 w-full mt-2">Back Side</p>
                 </div>
              </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 modal-backdrop-blur" onClick={() => !editSaving && setShowEditModal(false)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden fade-in-scale">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-indigo-600"></div>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Edit className="w-5 h-5 text-brand-600" />
+                Edit Company Profile
+              </h3>
+              <button
+                onClick={() => !editSaving && setShowEditModal(false)}
+                className="text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={saveEditProfile} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {editError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                  {editError}
+                </div>
+              )}
+
+              {/* Company Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Company Name</label>
+                <input
+                  type="text"
+                  value={editForm.name || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                  required
+                />
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">City</label>
+                <input
+                  type="text"
+                  value={editForm.city || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, city: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                  required
+                />
+              </div>
+
+              {/* Business Type */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Business Type</label>
+                <select
+                  value={editForm.businessType || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, businessType: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white input-glow"
+                  required
+                >
+                  <option value="" disabled>Select type</option>
+                  {BUSINESS_TYPES.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Contact Person */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Contact Person</label>
+                <input
+                  type="text"
+                  value={editForm.contactPerson || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, contactPerson: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Official Email</label>
+                <input
+                  type="email"
+                  value={editForm.officialEmail || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, officialEmail: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Official Phone</label>
+                <input
+                  type="tel"
+                  value={editForm.officialPhone || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, officialPhone: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={editSaving}
+                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex-1 py-3 shadow-xl shadow-brand-500/20"
+                  disabled={editSaving || !editForm.name || !editForm.city || !editForm.businessType}
+                >
+                  {editSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

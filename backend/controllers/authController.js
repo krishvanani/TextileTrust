@@ -238,11 +238,74 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Whitelist editable fields
+  const allowedFields = ['companyName', 'email', 'contactNumber'];
+  const updates = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400);
+    throw new Error('No valid fields to update');
+  }
+
+  // Check for duplicate email
+  if (updates.email && updates.email !== user.email) {
+    const emailExists = await User.findOne({ email: updates.email });
+    if (emailExists) {
+      res.status(409);
+      throw new Error('Email is already in use');
+    }
+  }
+
+  // Check for duplicate contact number
+  if (updates.contactNumber && updates.contactNumber !== user.contactNumber) {
+    const phoneExists = await User.findOne({ contactNumber: updates.contactNumber });
+    if (phoneExists) {
+      res.status(409);
+      throw new Error('Contact number is already in use');
+    }
+  }
+
+  Object.assign(user, updates);
+  await user.save();
+
+  const company = await Company.findOne({ submittedBy: user._id });
+
+  res.json({
+    _id: user._id,
+    companyName: user.companyName,
+    email: user.email,
+    role: user.role,
+    contactNumber: user.contactNumber,
+    isSubscribed: user.isSubscribed,
+    subscription: user.subscription,
+    createdAt: user.createdAt,
+    ownedCompanyId: user.ownedCompanyId,
+    profilePhoto: user.profilePhoto || '',
+    registeredCompanyId: company ? company._id : null
+  });
+});
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   updateSubscription,
   uploadProfilePhoto,
-  upload
+  upload,
+  updateProfile
 };

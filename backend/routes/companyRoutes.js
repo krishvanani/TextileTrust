@@ -8,7 +8,8 @@ const {
   getTrendingCompanies,
   checkCompanyIdentity,
   uploadBusinessCard,
-  uploadMiddleware
+  uploadMiddleware,
+  updateCompany
 } = require('../controllers/companyController');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
@@ -29,5 +30,6 @@ router.get('/suggestions', getSearchSuggestions); // Public access for landing p
 router.get('/trending', getTrendingCompanies); // Public access for Trending Feature
 router.get('/check-identity', protect, checkCompanyIdentity); // Early validation
 router.get('/:id', optionalAuth, getCompanyById);
+router.put('/:id', protect, updateCompany);
 
 module.exports = router;

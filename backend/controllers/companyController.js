@@ -380,6 +380,47 @@ const uploadBusinessCard = asyncHandler(async (req, res) => {
     res.status(200).json(updatedCompany);
 });
 
+// @desc    Update company profile
+// @route   PUT /api/companies/:id
+// @access  Private (Owner only)
+const updateCompany = asyncHandler(async (req, res) => {
+  const company = await Company.findById(req.params.id);
+  if (!company) {
+    res.status(404);
+    throw new Error('Company not found');
+  }
+
+  // Ownership check
+  if (company.submittedBy.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error('Not authorized to edit this company');
+  }
+
+  // Whitelist editable fields only
+  const allowedFields = ['name', 'city', 'businessType', 'contactPerson', 'officialEmail', 'officialPhone'];
+  const updates = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400);
+    throw new Error('No valid fields to update');
+  }
+
+  const updatedCompany = await Company.findByIdAndUpdate(
+    req.params.id,
+    { $set: updates },
+    { new: true, runValidators: true }
+  ).populate('submittedBy', 'profilePhoto');
+
+  await logActivity(req.user.id, 'COMPANY_UPDATED', `Updated profile for ${updatedCompany.name}`);
+
+  res.json(updatedCompany);
+});
+
 module.exports = {
   registerCompany,
   getCompanyById,
@@ -388,5 +429,6 @@ module.exports = {
   getTrendingCompanies,
   checkCompanyIdentity,
   uploadBusinessCard,
-  uploadMiddleware
+  uploadMiddleware,
+  updateCompany
 };

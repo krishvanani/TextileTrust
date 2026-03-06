@@ -104,6 +104,12 @@ const Profile = () => {
   const [bcBack, setBcBack] = React.useState(null);
   const [uploadingBC, setUploadingBC] = React.useState(false);
 
+  // Edit Profile State
+  const [showEditProfileModal, setShowEditProfileModal] = React.useState(false);
+  const [editProfileForm, setEditProfileForm] = React.useState({});
+  const [editProfileSaving, setEditProfileSaving] = React.useState(false);
+  const [editProfileError, setEditProfileError] = React.useState('');
+
   const API_BASE = 'http://localhost:5003';
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
@@ -186,6 +192,32 @@ const Profile = () => {
       alert(error.response?.data?.message || 'Upload failed');
     } finally {
       setUploadingBC(false);
+    }
+  };
+
+  // Edit Profile Handlers
+  const openEditProfile = () => {
+    setEditProfileForm({
+      companyName: profile?.companyName || '',
+      email: profile?.email || '',
+      contactNumber: profile?.contactNumber || ''
+    });
+    setEditProfileError('');
+    setShowEditProfileModal(true);
+  };
+
+  const saveEditProfile = async (e) => {
+    e.preventDefault();
+    setEditProfileSaving(true);
+    setEditProfileError('');
+    try {
+      await api.put('/auth/profile', editProfileForm);
+      await refreshUser();
+      setShowEditProfileModal(false);
+    } catch (err) {
+      setEditProfileError(err.response?.data?.message || 'Failed to update profile.');
+    } finally {
+      setEditProfileSaving(false);
     }
   };
 
@@ -400,10 +432,19 @@ const Profile = () => {
                      ) : null}
 
                      {/* 2. Contact Information */}
-                     <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8">
-                        <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 sm:mb-6 flex items-center text-brand-600">
-                           <User className="w-4 h-4 mr-2" /> Contact details
-                        </h3>
+                      <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8">
+                         <div className="flex items-center justify-between mb-4 sm:mb-6">
+                           <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center text-brand-600">
+                              <User className="w-4 h-4 mr-2" /> Contact details
+                           </h3>
+                           <button
+                             onClick={openEditProfile}
+                             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 border border-brand-200 text-brand-700 font-semibold text-xs hover:bg-brand-100 hover:border-brand-300 transition-all"
+                           >
+                             <Edit className="w-3 h-3" />
+                             Edit
+                           </button>
+                         </div>
                         <div className="space-y-4 sm:space-y-5">
                             <div className="flex items-start gap-3 sm:gap-4">
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
@@ -912,6 +953,91 @@ const Profile = () => {
                    )}
                 </div>
              </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 modal-backdrop-blur" onClick={() => !editProfileSaving && setShowEditProfileModal(false)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden fade-in-scale">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-400 to-indigo-600"></div>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Edit className="w-5 h-5 text-brand-600" />
+                Edit Profile
+              </h3>
+              <button
+                onClick={() => !editProfileSaving && setShowEditProfileModal(false)}
+                className="text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={saveEditProfile} className="p-6 space-y-4">
+              {editProfileError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                  {editProfileError}
+                </div>
+              )}
+
+              {/* Company Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Company / Display Name</label>
+                <input
+                  type="text"
+                  value={editProfileForm.companyName || ''}
+                  onChange={(e) => setEditProfileForm(f => ({ ...f, companyName: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                  placeholder="Your company or display name"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={editProfileForm.email || ''}
+                  onChange={(e) => setEditProfileForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                  required
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Contact Number</label>
+                <input
+                  type="tel"
+                  value={editProfileForm.contactNumber || ''}
+                  onChange={(e) => setEditProfileForm(f => ({ ...f, contactNumber: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none input-glow"
+                  required
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  disabled={editProfileSaving}
+                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex-1 py-3 shadow-xl shadow-brand-500/20"
+                  disabled={editProfileSaving || !editProfileForm.email || !editProfileForm.contactNumber}
+                >
+                  {editProfileSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
