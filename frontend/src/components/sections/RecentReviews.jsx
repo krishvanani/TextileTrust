@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 // API Base for images
-const API_BASE = 'http://localhost:5003';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const RecentReviews = () => {
   const [reviews, setReviews] = useState([]);

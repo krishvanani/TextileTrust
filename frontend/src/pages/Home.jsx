@@ -14,7 +14,7 @@ import StatsCounter from '../components/ui/StatsCounter';
 import RecentReviews from '../components/sections/RecentReviews';
 import TypewriterText from '../components/ui/TypewriterText';
 
-const API_BASE = 'http://localhost:5003';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const LandingPage = () => {
   const { showNavbarSearch, setShowNavbarSearch, setSearchTerm } = useSearch();

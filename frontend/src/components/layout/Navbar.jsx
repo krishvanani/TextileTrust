@@ -29,7 +29,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const view = searchParams.get('view');
-  const API_BASE = 'http://localhost:5003';
+  const API_BASE = import.meta.env.VITE_API_URL;
 
   // Initialize theme - Always Dark for consistent style
   const isDarkTheme = true; 

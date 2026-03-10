@@ -7,7 +7,7 @@ import useScrollReveal from '../hooks/useScrollReveal';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
-const API_BASE = 'http://localhost:5003';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 // Mock Data (matches Search page)
 const MOCK_DATA = {
