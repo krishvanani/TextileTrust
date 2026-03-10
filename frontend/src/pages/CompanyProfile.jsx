@@ -156,6 +156,9 @@ const CompanyProfile = () => {
     }
   }, [isSubscribed, id, user?._id]);
 
+  // Check if the current user has already reviewed this company
+  const myExistingReview = reviews.find(r => r.reviewerId === user?._id);
+
   // Calculations for Distribution
   const totalReviewCount = reviews.length;
   const starCounts = reviews.reduce((acc, review) => {
@@ -450,14 +453,25 @@ const CompanyProfile = () => {
                     </>
                   ) : (
                     <>
-                    <Button 
-                      variant="primary" 
-                      onClick={handleGatedAction}
-                      className="shadow-lg shadow-brand-500/20 bg-gray-900 hover:bg-black text-white px-5 sm:px-6 min-h-[40px] sm:min-h-[44px] text-sm sm:text-base flex items-center gap-2"
-                    >
-                      <Star className="w-4 h-4" />
-                      Write a Review
-                    </Button>
+                    {myExistingReview ? (
+                      <Button 
+                        variant="primary" 
+                        onClick={() => openEditReview(myExistingReview)}
+                        className="shadow-lg shadow-brand-500/20 bg-gray-900 hover:bg-black text-white px-5 sm:px-6 min-h-[40px] sm:min-h-[44px] text-sm sm:text-base flex items-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit Review
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="primary" 
+                        onClick={handleGatedAction}
+                        className="shadow-lg shadow-brand-500/20 bg-gray-900 hover:bg-black text-white px-5 sm:px-6 min-h-[40px] sm:min-h-[44px] text-sm sm:text-base flex items-center gap-2"
+                      >
+                        <Star className="w-4 h-4" />
+                        Write a Review
+                      </Button>
+                    )}
                     {isSubscribed && company?.businessCard?.frontImageUrl && (
                       <button 
                         onClick={() => setShowBCModal(true)}
