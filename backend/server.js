@@ -30,12 +30,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-// CORS configuration
-const corsOptions = {
-  origin: "https://textile-trust.vercel.app",
-  credentials: true
-};
-app.use(cors(corsOptions));
+app.use(cors());
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

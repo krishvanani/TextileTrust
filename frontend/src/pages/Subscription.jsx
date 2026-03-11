@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -148,7 +148,7 @@ const Subscription = () => {
   const [isGstVerified, setIsGstVerified] = useState(false);
   const [captchaLoading, setCaptchaLoading] = useState(false);
 
-  const GST_API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/gst` : '';
+  const GST_API_BASE = 'http://localhost:5003/api/gst';
 
   // Fetch captcha from the GST verification API
   const fetchGstCaptcha = async () => {
@@ -495,7 +495,7 @@ const Subscription = () => {
                   <div className="flex items-center">
                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-white/10">
                        {testimonial.photo ? (
-                         <img src={`${import.meta.env.VITE_API_URL || ''}${testimonial.photo}`} alt={testimonial.name} className="w-full h-full object-cover" />
+                         <img src={`http://localhost:5003${testimonial.photo}`} alt={testimonial.name} className="w-full h-full object-cover" />
                        ) : (
                          <div className={`w-full h-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center text-white text-sm font-bold`}>
                            {testimonial.name ? testimonial.name.substring(0, 2).toUpperCase() : 'U'}

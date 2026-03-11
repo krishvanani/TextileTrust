@@ -17,7 +17,7 @@ import api from "../services/api";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../context/SearchContext";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE = "http://localhost:5003";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
