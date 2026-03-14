@@ -110,7 +110,7 @@ const Profile = () => {
   const [editProfileSaving, setEditProfileSaving] = React.useState(false);
   const [editProfileError, setEditProfileError] = React.useState('');
 
-  const API_BASE = 'http://localhost:5003';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);

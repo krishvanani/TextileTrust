@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useSearch } from '../../context/SearchContext';
 
-const API_BASE = 'http://localhost:5003';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
 const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, or PAN...' }) => {
   const navigate = useNavigate();
