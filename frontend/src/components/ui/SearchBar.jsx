@@ -108,9 +108,9 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
             
              {/* Dropdown Logic (Copied for navbar) */}
              {showDropdown && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] animate-in fade-in slide-in-from-top-2 text-left max-h-[60vh] overflow-y-auto">
-                     <div className="py-2">
-                         <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
+                <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 text-left">
+                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 rounded-t-2xl">Companies</div>
+                     <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(50vh, 360px)' }}>
                          {suggestions.map((company) => {
                             // Ensure we use the aggregate/average data
                             const rating = company.avgRating ?? company.rating ?? 0;
@@ -189,9 +189,9 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
         
          {/* Dropdown Logic (Simplified for this file) */}
          {showDropdown && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] animate-in fade-in slide-in-from-top-2 text-left max-h-[60vh] overflow-y-auto">
-                 <div className="py-2">
-                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
+            <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 text-left">
+                 <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 rounded-t-2xl">Companies</div>
+                 <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(50vh, 360px)' }}>
                      {suggestions.map((company) => {
                         // Ensure we use the aggregate/average data
                         const rating = company.avgRating ?? company.rating ?? 0;
