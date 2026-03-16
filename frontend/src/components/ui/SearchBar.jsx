@@ -11,6 +11,14 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
   const { searchTerm, setSearchTerm } = useSearch();
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640);
+
+  // Track screen size for mobile limit
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // For navbar variant, we might want local state if we don't want to sync perfectly with hero
   // But per requirements, "never show both". 
@@ -108,30 +116,32 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
             
              {/* Dropdown Logic (Copied for navbar) */}
              {showDropdown && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 text-left">
-                     <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 rounded-t-2xl">Companies</div>
-                     <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(50vh, 360px)' }}>
-                         {suggestions.map((company) => {
-                            // Ensure we use the aggregate/average data
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-[0_8px_40px_-8px_rgba(79,70,229,0.15)] border border-gray-200/60 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 text-left backdrop-blur-sm">
+                     <div className="px-4 py-2.5 text-[11px] font-bold text-gray-400 uppercase tracking-[0.15em] border-b border-gray-100 rounded-t-2xl bg-gray-50/80 flex items-center gap-2">
+                       <Search className="w-3 h-3 text-gray-300" />
+                       Companies
+                     </div>
+                     <div className="overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent" style={{ maxHeight: 'min(50vh, 360px)', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }} onTouchMove={(e) => e.stopPropagation()}>
+                         {(isMobile ? suggestions.slice(0, 3) : suggestions.slice(0, 5)).map((company) => {
                             const rating = company.avgRating ?? company.rating ?? 0;
                             const reviewCount = company.totalReviews ?? company.reviews ?? 0;
                             
-                            let ratingColor = "bg-red-900"; // Default/0 stars (Dark Red)
-                            if (rating >= 5.0) ratingColor = "bg-green-800"; // 5 Stars (Dark Green)
-                            else if (rating >= 4.0) ratingColor = "bg-lime-500"; // 4 Stars (Light Green)
-                            else if (rating >= 3.0) ratingColor = "bg-yellow-400"; // 3 Stars (Yellow)
-                            else if (rating >= 2.0) ratingColor = "bg-orange-500"; // 2 Stars (Orange)
-                            else if (rating >= 1.0) ratingColor = "bg-red-600"; // 1 Star (Red)
+                            let ratingColor = "bg-red-900";
+                            if (rating >= 5.0) ratingColor = "bg-green-800";
+                            else if (rating >= 4.0) ratingColor = "bg-lime-500";
+                            else if (rating >= 3.0) ratingColor = "bg-yellow-400";
+                            else if (rating >= 2.0) ratingColor = "bg-orange-500";
+                            else if (rating >= 1.0) ratingColor = "bg-red-600";
 
                             return (
                             <button
                                key={company._id}
                                type="button"
                                onMouseDown={() => handleSelectCompany(company._id)}
-                               className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 text-left border-b border-gray-50 last:border-0 group transition-colors`}
+                               className="w-full px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between hover:bg-brand-50/50 text-left border-b border-gray-50 last:border-0 last:rounded-b-2xl group transition-all duration-150"
                             >
-                               <div className="flex items-center gap-3 overflow-hidden">
-                                   <div className="w-12 h-12 min-w-[48px] rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-sm uppercase overflow-hidden">
+                               <div className="flex items-center gap-2.5 sm:gap-3 overflow-hidden">
+                                   <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-xl bg-gradient-to-br from-brand-50 to-gray-100 flex items-center justify-center text-brand-600 font-bold text-xs sm:text-sm uppercase overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
                                       {company.submittedBy?.profilePhoto ? (
                                         <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                                       ) : (
@@ -139,20 +149,20 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
                                       )}
                                    </div>
                                    
-                                   <div className="flex flex-col overflow-hidden">
-                                      <span className="text-sm font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
+                                   <div className="flex flex-col overflow-hidden gap-0.5">
+                                      <span className="text-[13px] sm:text-sm font-semibold text-gray-800 truncate group-hover:text-brand-600 transition-colors">
                                         {company.name}
                                       </span>
-                                      <span className="text-xs text-gray-400 font-normal truncate flex items-center gap-1.5">
-                                        <span className="font-mono bg-gray-100 px-1 rounded text-[10px]">GST: {company.gst}</span>
-                                        <span>•</span>
+                                      <span className="text-[10px] sm:text-xs text-gray-400 font-normal truncate flex items-center gap-1.5">
+                                        <span className="font-mono bg-gray-50 border border-gray-100 px-1 py-px rounded text-[9px] sm:text-[10px]">GST: {company.gst}</span>
+                                        <span className="text-gray-300">•</span>
                                         <span>{reviewCount} reviews</span>
                                       </span>
                                    </div>
                                </div>
 
-                               <div className={`ml-3 px-2 py-1 rounded-md text-white font-bold text-xs flex items-center gap-1 min-w-[50px] justify-center ${ratingColor}`}>
-                                  <Star className="w-3 h-3 fill-current" />
+                               <div className={`ml-2 sm:ml-3 px-2 py-1 rounded-lg text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 min-w-[46px] sm:min-w-[50px] justify-center shadow-sm ${ratingColor}`}>
+                                  <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
                                   {rating.toFixed(1)}
                                </div>
                             </button>
@@ -189,31 +199,33 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
         
          {/* Dropdown Logic (Simplified for this file) */}
          {showDropdown && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[9999] animate-in fade-in slide-in-from-top-2 text-left">
-                 <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 rounded-t-2xl">Companies</div>
-                 <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: 'min(50vh, 360px)' }}>
-                     {suggestions.map((company) => {
-                        // Ensure we use the aggregate/average data
+            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-[0_8px_40px_-8px_rgba(79,70,229,0.15)] border border-gray-200/60 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 text-left backdrop-blur-sm">
+                 <div className="px-4 py-2.5 text-[11px] font-bold text-gray-400 uppercase tracking-[0.15em] border-b border-gray-100 rounded-t-2xl bg-gray-50/80 flex items-center gap-2">
+                   <Search className="w-3 h-3 text-gray-300" />
+                   Companies
+                 </div>
+                 <div className="overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent" style={{ maxHeight: 'min(50vh, 360px)', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }} onTouchMove={(e) => e.stopPropagation()}>
+                     {(isMobile ? suggestions.slice(0, 3) : suggestions.slice(0, 5)).map((company) => {
                         const rating = company.avgRating ?? company.rating ?? 0;
                         const reviewCount = company.totalReviews ?? company.reviews ?? 0;
                         
-                        let ratingColor = "bg-red-900"; // Default/0 stars (Dark Red)
-                        if (rating >= 5.0) ratingColor = "bg-green-800"; // 5 Stars (Dark Green)
-                        else if (rating >= 4.0) ratingColor = "bg-lime-500"; // 4 Stars (Light Green)
-                        else if (rating >= 3.0) ratingColor = "bg-yellow-400"; // 3 Stars (Yellow)
-                        else if (rating >= 2.0) ratingColor = "bg-orange-500"; // 2 Stars (Orange)
-                        else if (rating >= 1.0) ratingColor = "bg-red-600"; // 1 Star (Red)
+                        let ratingColor = "bg-red-900";
+                        if (rating >= 5.0) ratingColor = "bg-green-800";
+                        else if (rating >= 4.0) ratingColor = "bg-lime-500";
+                        else if (rating >= 3.0) ratingColor = "bg-yellow-400";
+                        else if (rating >= 2.0) ratingColor = "bg-orange-500";
+                        else if (rating >= 1.0) ratingColor = "bg-red-600";
 
                         return (
                         <button
                            key={company._id}
                            type="button"
                            onMouseDown={() => handleSelectCompany(company._id)}
-                           className={`w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 text-left border-b border-gray-50 last:border-0 group transition-colors`}
+                           className="w-full px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between hover:bg-brand-50/50 text-left border-b border-gray-50 last:border-0 last:rounded-b-2xl group transition-all duration-150"
                         >
-                           <div className="flex items-center gap-3 overflow-hidden">
+                           <div className="flex items-center gap-2.5 sm:gap-3 overflow-hidden">
                {/* Logo / Profile Photo */}
-               <div className="w-12 h-12 min-w-[48px] rounded-lg bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-sm uppercase overflow-hidden">
+               <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-xl bg-gradient-to-br from-brand-50 to-gray-100 flex items-center justify-center text-brand-600 font-bold text-xs sm:text-sm uppercase overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
                   {company.submittedBy?.profilePhoto ? (
                     <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -221,21 +233,21 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
                   )}
                </div>
                                
-                               <div className="flex flex-col overflow-hidden">
-                                  <span className="text-sm font-bold text-gray-900 truncate group-hover:text-brand-600 transition-colors">
+                               <div className="flex flex-col overflow-hidden gap-0.5">
+                                  <span className="text-[13px] sm:text-sm font-semibold text-gray-800 truncate group-hover:text-brand-600 transition-colors">
                                     {company.name}
                                   </span>
-                                  <span className="text-xs text-gray-400 font-normal truncate flex items-center gap-1.5">
-                                    <span className="font-mono bg-gray-100 px-1 rounded text-[10px]">GST: {company.gst}</span>
-                                    <span>•</span>
+                                  <span className="text-[10px] sm:text-xs text-gray-400 font-normal truncate flex items-center gap-1.5">
+                                    <span className="font-mono bg-gray-50 border border-gray-100 px-1 py-px rounded text-[9px] sm:text-[10px]">GST: {company.gst}</span>
+                                    <span className="text-gray-300">•</span>
                                     <span>{reviewCount} reviews</span>
                                   </span>
                                </div>
                            </div>
 
                            {/* Rating Box */}
-                           <div className={`ml-3 px-2 py-1 rounded-md text-white font-bold text-xs flex items-center gap-1 min-w-[50px] justify-center ${ratingColor}`}>
-                              <Star className="w-3 h-3 fill-current" />
+                           <div className={`ml-2 sm:ml-3 px-2 py-1 rounded-lg text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 min-w-[46px] sm:min-w-[50px] justify-center shadow-sm ${ratingColor}`}>
+                              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
                               {rating.toFixed(1)}
                            </div>
                         </button>

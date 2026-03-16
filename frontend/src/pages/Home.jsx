@@ -112,8 +112,7 @@ const LandingPage = () => {
               <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
             </svg>
             </span>
-            <br className="hidden sm:block" />
-            <span className="sm:hidden"> – </span>
+            <br />
             <TypewriterText 
               phrases={['Verify Every Partner.', 'Assess Credit Risk.', 'Build Trust Networks.']}
               className=""
