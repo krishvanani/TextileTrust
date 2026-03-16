@@ -50,7 +50,7 @@ app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/gst', require('./routes/gstRoutes'));
 
 app.get('/', (req, res) => {
-  res.send('TextileTrust API is running...');
+  res.send('TexoTrust API is running...');
 });
 
 const { errorHandler } = require('./middleware/errorMiddleware');

@@ -760,7 +760,7 @@ const CompanyProfile = () => {
                       </div>
                       <h3 className="text-lg font-bold text-gray-900 mb-2">Premium Intelligence Locked</h3>
                        <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                        Join verified textile traders who rely on TextileTrust to reduce payment risk and improve trade transparency.
+                        Join verified textile traders who rely on TexoTrust to reduce payment risk and improve trade transparency.
                       </p>
                       <Button 
                         variant="primary" 

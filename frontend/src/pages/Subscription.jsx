@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, ShieldCheck, Building2, TrendingUp, Zap, Crown, CheckCircle, Shield, Search, Lock, FileText, Globe, Star, AlertCircle, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -40,7 +40,7 @@ const fallbackTestimonials = [
     rating: 5,
   },
   {
-    quote: "Before TextileTrust, onboarding a new yarn supplier took weeks. Now we verify and connect in under 10 minutes.",
+    quote: "Before TexoTrust, onboarding a new yarn supplier took weeks. Now we verify and connect in under 10 minutes.",
     name: "Amit Patel",
     title: "CEO, Patel Yarn Industries",
     gradient: "from-brand-400 to-indigo-600",
@@ -1266,7 +1266,7 @@ const Subscription = () => {
              <div className="relative z-10">
                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to upgrade your business?</h2>
                <p className="text-brand-100 text-lg mb-10 max-w-2xl mx-auto font-light">
-                 Join verified textile businesses who trust TextileTrust for their daily business intelligence.
+                 Join verified textile businesses who trust TexoTrust for their daily business intelligence.
                </p>
                <div className="flex flex-col sm:flex-row justify-center gap-4">
                  <Button 

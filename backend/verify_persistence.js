@@ -111,7 +111,7 @@ async function verifyPersistence() {
 
     console.log('\n🎉 ALL ENTITIES CREATED SUCCESSFULLY');
     console.log('--- PLEASE CHECK MONGODB COMPASS ---');
-    console.log(`Database: textiletrust`);
+    console.log(`Database: texotrust`);
     console.log(`Company ID: ${compData._id}`);
     console.log(`Subscription ID: ${subData.data.subscription.id}`);
     console.log(`Review ID: ${reviewData._id}`);

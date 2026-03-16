@@ -67,7 +67,7 @@ const Layout = ({ children }) => {
                 </li>
                 <li className="flex items-center">
                   <Mail className="w-5 h-5 mr-3 text-brand-500 shrink-0" />
-                  <span>support@textiletrust.com</span>
+                  <span>support@texotrust.com</span>
                 </li>
               </ul>
             </div>
@@ -96,7 +96,7 @@ const Layout = ({ children }) => {
 
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
             <div>
-              © {new Date().getFullYear()} TextileTrust. All rights reserved.
+              © {new Date().getFullYear()} TexoTrust. All rights reserved.
             </div>
             <div className="flex gap-6">
               <a href="#" className="footer-link hover:text-white transition-colors">Privacy Policy</a>

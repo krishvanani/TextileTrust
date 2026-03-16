@@ -88,7 +88,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
       return (
         <form onSubmit={handleSearch} className="relative w-full animate-in fade-in zoom-in duration-300">
            <div className="relative">
-            <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-full shadow-2xl shadow-brand-500/20 p-1 sm:p-1.5 border border-white/10 hover:shadow-brand-500/30 hover:bg-white/15 transition-all duration-300 relative z-20">
+            <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-full shadow-2xl shadow-brand-500/20 p-1 sm:p-1.5 border border-white/10 hover:shadow-brand-500/30 hover:bg-white/15 transition-all duration-300 relative z-[60]">
                 <div className="pl-3 sm:pl-5 pr-2 sm:pr-3 text-brand-200">
                     <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
@@ -108,7 +108,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
             
              {/* Dropdown Logic (Copied for navbar) */}
              {showDropdown && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 text-left">
+                <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] animate-in fade-in slide-in-from-top-2 text-left max-h-[60vh] overflow-y-auto">
                      <div className="py-2">
                          <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
                          {suggestions.map((company) => {
@@ -169,7 +169,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
   return (
     <form onSubmit={handleSearch} className="relative w-full">
        <div className="relative">
-        <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-full shadow-2xl shadow-brand-500/20 p-1 sm:p-1.5 border border-white/10 hover:shadow-brand-500/30 hover:bg-white/15 transition-all duration-300 relative z-20">
+        <div className="flex items-center bg-white/10 backdrop-blur-xl rounded-full shadow-2xl shadow-brand-500/20 p-1 sm:p-1.5 border border-white/10 hover:shadow-brand-500/30 hover:bg-white/15 transition-all duration-300 relative z-[60]">
             <div className="pl-3 sm:pl-4 lg:pl-5 pr-2 sm:pr-3 text-brand-200">
                 <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
@@ -189,7 +189,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
         
          {/* Dropdown Logic (Simplified for this file) */}
          {showDropdown && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-30 animate-in fade-in slide-in-from-top-2 text-left">
+            <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] animate-in fade-in slide-in-from-top-2 text-left max-h-[60vh] overflow-y-auto">
                  <div className="py-2">
                      <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Companies</div>
                      {suggestions.map((company) => {

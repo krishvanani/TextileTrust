@@ -49,7 +49,7 @@ const Logo = ({
       
       {showText && (
         <span className={`font-bold tracking-tight ${textClassName} ${getTextColor()}`}>
-          TextileTrust
+          TexoTrust
         </span>
       )}
     </div>

@@ -337,7 +337,7 @@ const getRecentReviews = asyncHandler(async (req, res) => {
         id: r.companyId._id,
         name: r.companyId.name,
         logo: r.companyId.submittedBy?.profilePhoto, // Use owner's photo as logo
-        domain: r.companyId.website || 'textiletrust.com',
+        domain: r.companyId.website || 'texotrust.com',
         category: r.companyId.businessType || 'Verified Business'
       }
     };

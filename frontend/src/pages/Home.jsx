@@ -121,7 +121,7 @@ const LandingPage = () => {
           </h1>
           
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-brand-100/80 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto leading-relaxed font-light px-2 sm:px-0">
-            TextileTrust is the B2B verification platform that connects reliable traders and manufacturers using official GST records and authentic feedback.
+            TexoTrust is the B2B verification platform that connects reliable traders and manufacturers using official GST records and authentic feedback.
           </p>
           
           {/* Conditional Search Bar */}
@@ -242,7 +242,7 @@ const LandingPage = () => {
         <div className="container-custom">
            <div className="text-center mb-8 sm:mb-12 md:mb-16 reveal">
             <h2 className="text-xs sm:text-sm font-bold text-brand-500 uppercase tracking-widest mb-2 sm:mb-3">Core Platform Features</h2>
-            <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-future-carbon">What TextileTrust Does</h3>
+            <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-future-carbon">What TexoTrust Does</h3>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 reveal">
@@ -294,7 +294,7 @@ const LandingPage = () => {
                 Built on transparency.<br />Verified by humans.
               </h3>
               <p className="text-future-smoke text-lg mb-8 leading-relaxed">
-                Unlike open marketplaces, TextileTrust prioritizes quality over quantity. We maintain a clean ecosystem free from spam and fake profiles.
+                Unlike open marketplaces, TexoTrust prioritizes quality over quantity. We maintain a clean ecosystem free from spam and fake profiles.
               </p>
               
               <div className="space-y-6">
@@ -344,7 +344,7 @@ const LandingPage = () => {
       <section className="py-24">
         <div className="container-custom">
           <div className="text-center mb-16 reveal">
-            <h2 className="text-3xl font-bold text-future-carbon">Who is TextileTrust for?</h2>
+            <h2 className="text-3xl font-bold text-future-carbon">Who is TexoTrust for?</h2>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6 reveal">
@@ -436,7 +436,7 @@ const LandingPage = () => {
                 Ready to verify your next partner?
               </h2>
               <p className="text-xl text-brand-100 mb-12 max-w-xl mx-auto font-light">
-                Join verified textile professionals who trust TextileTrust for their due diligence.
+                Join verified textile professionals who trust TexoTrust for their due diligence.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button to="/signup" variant="primary" className="py-4 px-12 text-lg shadow-2xl shadow-brand-500/40 hover:shadow-brand-500/50 border border-white/10">

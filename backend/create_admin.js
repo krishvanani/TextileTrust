@@ -11,7 +11,7 @@ const createAdmin = async () => {
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
-    const adminEmail = 'admin@textiletrust.com';
+    const adminEmail = 'admin@texotrust.com';
     const adminPassword = 'AdminPassword123!';
     const adminPhone = '9999999999';
 
@@ -25,7 +25,7 @@ const createAdmin = async () => {
 
     // Create admin user
     const user = await User.create({
-      companyName: 'TextileTrust Admin',
+      companyName: 'TexoTrust Admin',
       email: adminEmail,
       contactNumber: adminPhone,
       password: adminPassword,
