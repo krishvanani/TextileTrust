@@ -150,6 +150,49 @@ const Subscription = () => {
 
   const GST_API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:5003'}/api/gst`;
 
+  // ── Pre-fill GST from signup verification ──
+  // If user verified GST during signup, auto-fill the form and skip captcha
+  useEffect(() => {
+    const snapshot = user?.companySnapshot;
+    if (!snapshot?.gstNumber) return;
+
+    // Only pre-fill if form GST is still empty (avoid re-filling after user edits)
+    setFormData(prev => {
+      if (prev.gstNumber) return prev; // Already has a value, don't overwrite
+
+      const gstNum = snapshot.gstNumber.toUpperCase();
+
+      // Auto-extract PAN from GST (chars 3-12)
+      let extractedPan = '';
+      if (gstNum.length >= 12) {
+        const pan = gstNum.substring(2, 12);
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        if (panRegex.test(pan)) {
+          extractedPan = pan;
+        }
+      }
+
+      // Mark as pre-verified (skip captcha)
+      setIsGstVerified(true);
+      setGstVerifyStatus('success');
+      setGstDetails({
+        gstin: gstNum,
+        lgnm: snapshot.companyName || '',
+        tradeNam: snapshot.companyName || '',
+        sts: 'Active',
+        ctb: snapshot.businessType || '',
+      });
+
+      return {
+        ...prev,
+        gstNumber: gstNum,
+        companyName: snapshot.companyName || prev.companyName,
+        city: snapshot.city || prev.city,
+        panNumber: extractedPan || prev.panNumber,
+      };
+    });
+  }, [user]);
+
   // Fetch captcha from the GST verification API
   const fetchGstCaptcha = async () => {
     setCaptchaLoading(true);

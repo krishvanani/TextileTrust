@@ -1,5 +1,6 @@
 const Review = require('../models/Review');
 const Company = require('../models/Company');
+const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const recalcCompanyStats = require('../utils/recalcCompanyStats');
@@ -43,11 +44,8 @@ const addReview = asyncHandler(async (req, res) => {
   
   console.log('[DEBUG] User:', req.user._id, 'Subscribed:', req.user.isSubscribed);
 
-  if (!req.user.isSubscribed) {
-    console.error('[DEBUG] User not subscribed');
-    res.status(403);
-    throw new Error('Subscription required to write reviews');
-  }
+  // Review limit is now enforced by checkReviewLimit middleware
+  // No subscription gate here — free users get 5 reviews
 
   const company = await Company.findById(companyId);
   if (!company) {
@@ -92,7 +90,10 @@ const addReview = asyncHandler(async (req, res) => {
       // Recalculate company stats
       await recalcCompanyStats(companyId);
 
-      // 6. Log Success
+      // 6. Increment reviewCount on User
+      await User.findByIdAndUpdate(req.user.id, { $inc: { reviewCount: 1 } });
+
+      // 7. Log Success
       console.log(`[PERSISTENCE] Review saved successfully: ${review._id}`);
 
       // Log Activity (Reviewer)
@@ -103,10 +104,10 @@ const addReview = asyncHandler(async (req, res) => {
         await require('./activityController').logActivity(company.submittedBy, 'REVIEW', `Your company ${company.name} received a new review.`);
       }
 
-      // 7. Trigger Recalculation
+      // 8. Trigger Recalculation
       await recalculateReputation(companyId);
 
-      // 8. Return Created Review
+      // 9. Return Created Review
       res.status(201).json(review);
   } catch (err) {
       console.error('[FATAL] DB Write Failed:', err);
@@ -346,12 +347,187 @@ const getRecentReviews = asyncHandler(async (req, res) => {
   res.status(200).json(formatted);
 });
 
+// @desc    Add a review by GST number (auto-creates company if needed)
+// @route   POST /api/reviews/gst
+// @access  Private (Subscribed only)
+const addReviewByGst = asyncHandler(async (req, res) => {
+  const { gst, rating, comment, wouldDealAgain, gstDetails } = req.body;
+
+  // 1. Auth & subscription check
+  if (!req.user) {
+    res.status(401);
+    throw new Error('Not authorized');
+  }
+  // Review limit is now enforced by checkReviewLimit middleware
+  // No subscription gate here — free users get 5 reviews
+
+  if (!gst || !rating) {
+    res.status(400);
+    throw new Error('GST number and rating are required');
+  }
+
+  const normalizedGst = gst.toUpperCase().trim();
+
+  // 2. Find or create company by GST
+  let company = await Company.findOne({ gst: normalizedGst });
+
+  if (!company && gstDetails) {
+    // Auto-create a lightweight company from GOV.IN data
+    const tradeName = gstDetails.tradeNam || gstDetails.lgnm || 'Unknown Business';
+    const address = gstDetails.pradr?.addr || {};
+    const city = address.dst || address.stcd || 'Unknown';
+
+    // Extract PAN from GST (characters 3-12)
+    const pan = normalizedGst.substring(2, 12);
+
+    try {
+      company = await Company.create({
+        name: tradeName,
+        gst: normalizedGst,
+        pan: pan,
+        city: city,
+        businessType: 'Trader', // Default for auto-created
+        submittedBy: null, // No owner
+        status: 'APPROVED',
+        gstDetails: gstDetails,
+        isGstVerified: true,
+        verifiedAt: Date.now()
+      });
+      console.log(`[GST-REVIEW] Auto-created company ${company._id} for GST ${normalizedGst}`);
+    } catch (err) {
+      // If creation fails due to duplicate PAN, try to find by PAN
+      if (err.code === 11000) {
+        company = await Company.findOne({ gst: normalizedGst });
+        if (!company) {
+          res.status(400);
+          throw new Error('A company with conflicting identity already exists');
+        }
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  if (!company) {
+    res.status(400);
+    throw new Error('Could not find or create company for this GST. Please verify the GST number first.');
+  }
+
+  // 3. Ownership check
+  if (company.submittedBy && company.submittedBy.toString() === req.user.id.toString()) {
+    res.status(403);
+    throw new Error('You cannot review your own company');
+  }
+
+  // 4. Duplicate review check
+  const reviewExists = await Review.findOne({
+    userId: req.user.id,
+    companyId: company._id
+  });
+  if (reviewExists) {
+    res.status(400);
+    throw new Error('You have already reviewed this company');
+  }
+
+  // 5. Create review
+  const review = await Review.create({
+    companyId: company._id,
+    userId: req.user.id,
+    rating: Number(rating),
+    wouldDealAgain: Boolean(wouldDealAgain),
+    comment
+  });
+
+  // 6. Increment reviewCount on User
+  await User.findByIdAndUpdate(req.user.id, { $inc: { reviewCount: 1 } });
+
+  // 7. Recalculate company stats
+  await recalcCompanyStats(company._id);
+  await recalculateReputation(company._id);
+
+  // 8. Log Activity
+  await require('./activityController').logActivity(req.user.id, 'REVIEW', `You reviewed ${company.name}`);
+  if (company.submittedBy) {
+    await require('./activityController').logActivity(company.submittedBy, 'REVIEW', `Your company ${company.name} received a new review.`);
+  }
+
+  console.log(`[GST-REVIEW] Review ${review._id} saved for company ${company._id}`);
+
+  res.status(201).json({ review, companyId: company._id });
+});
+
+// @desc    Get review preview (public, limited data)
+// @route   GET /api/reviews/preview/:companyId
+// @access  Public
+const getReviewPreview = asyncHandler(async (req, res) => {
+  const { companyId } = req.params;
+
+  // Get total count
+  const totalReviews = await Review.countDocuments({ companyId });
+
+  // Get 2 most recent reviews with minimal data
+  const previewReviews = await Review.find({ companyId, isHidden: { $ne: true } })
+    .select('rating comment createdAt')
+    .sort({ createdAt: -1 })
+    .limit(2)
+    .lean();
+
+  // Truncate review text for preview
+  const sanitizedPreviews = previewReviews.map(r => ({
+    rating: r.rating,
+    text: r.comment ? (r.comment.length > 30 ? r.comment.substring(0, 30) + '...' : r.comment) : '',
+    date: r.createdAt
+  }));
+
+  // SECURITY: Do NOT return avgRating
+  res.status(200).json({
+    totalReviews,
+    previewReviews: sanitizedPreviews
+  });
+});
+
+// @desc    Get current user's review for a specific company
+// @route   GET /api/reviews/me/:companyId
+// @access  Private
+const getMyReviewForCompany = asyncHandler(async (req, res) => {
+  const { companyId } = req.params;
+
+  const review = await Review.findOne({ 
+    companyId, 
+    userId: req.user.id 
+  }).populate('userId', 'name companyName profilePhoto role isSubscribed');
+
+  if (!review) {
+    // Return null or 404
+    return res.status(200).json(null);
+  }
+
+  // Format similarly to getReviews
+  const formatted = {
+    id: review._id,
+    reviewerId: review.userId?._id,
+    reviewerName: review.userId?.name || 'Anonymous',
+    reviewerCompany: review.userId?.companyName || null,
+    reviewerPhoto: review.userId?.profilePhoto || null,
+    role: review.userId?.role || 'Trader',
+    isVerified: review.userId?.isSubscribed === true,
+    rating: review.rating,
+    wouldDealAgain: review.wouldDealAgain,
+    date: review.updatedAt || review.createdAt,
+    text: review.comment
+  };
+
+  res.status(200).json(formatted);
+});
+
 module.exports = {
   getReviews,
   getUserReviews,
   addReview,
   updateReview,
-  updateReview,
   getFeaturedReviews,
-  getRecentReviews
+  getRecentReviews,
+  addReviewByGst,
+  getReviewPreview,
+  getMyReviewForCompany
 };

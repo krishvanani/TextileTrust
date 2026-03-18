@@ -9,7 +9,8 @@ const {
   checkCompanyIdentity,
   uploadBusinessCard,
   uploadMiddleware,
-  updateCompany
+  updateCompany,
+  getCompanyByGst
 } = require('../controllers/companyController');
 const { protect, optionalAuth } = require('../middleware/authMiddleware');
 
@@ -29,6 +30,7 @@ router.get('/search', searchCompanies);
 router.get('/suggestions', getSearchSuggestions); // Public access for landing page UX
 router.get('/trending', getTrendingCompanies); // Public access for Trending Feature
 router.get('/check-identity', protect, checkCompanyIdentity); // Early validation
+router.get('/by-gst/:gst', getCompanyByGst); // Public lookup by GST
 router.get('/:id', optionalAuth, getCompanyById);
 router.put('/:id', protect, updateCompany);
 

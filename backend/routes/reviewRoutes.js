@@ -1,16 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { getReviews, getUserReviews, addReview, updateReview, getFeaturedReviews, getRecentReviews } = require('../controllers/reviewController');
+const { getReviews, getUserReviews, addReview, updateReview, getFeaturedReviews, getRecentReviews, addReviewByGst, getReviewPreview, getMyReviewForCompany } = require('../controllers/reviewController');
 const { protect } = require('../middleware/authMiddleware');
+const checkReviewLimit = require('../middleware/checkReviewLimit');
 
-// Public route — must be above /:companyId to avoid conflict
+// Public routes — must be above /:companyId to avoid conflict
 router.get('/featured', getFeaturedReviews);
 router.get('/recent', getRecentReviews);
+router.get('/preview/:companyId', getReviewPreview); // Public preview (no auth)
 
 router.get('/user', protect, getUserReviews);
+router.get('/me/:companyId', protect, getMyReviewForCompany);
 
 router.route('/')
-  .post(protect, addReview);
+  .post(protect, checkReviewLimit, addReview);
+
+router.post('/gst', protect, checkReviewLimit, addReviewByGst);
 
 router.route('/:companyId')
   .get(protect, getReviews);

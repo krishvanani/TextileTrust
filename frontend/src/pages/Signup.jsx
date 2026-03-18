@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Phone, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Phone, Eye, EyeOff, Building2, RefreshCw, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import LiquidEther from '../components/effects/liquid';
 import Logo from '../components/ui/Logo';
+import api from '../services/api';
+
+const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i;
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +22,17 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // GST verification state
+  const [gstNumber, setGstNumber] = useState('');
+  const [sessionId, setSessionId] = useState(null);
+  const [captchaImage, setCaptchaImage] = useState(null);
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+  const [gstLoading, setGstLoading] = useState(false);
+  const [gstError, setGstError] = useState('');
+  const [gstVerified, setGstVerified] = useState(false);
+  const [gstData, setGstData] = useState(null);
   
   const navigate = useNavigate();
   const { register } = useAuth();
@@ -27,6 +41,77 @@ const Signup = () => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
     if (error) setError('');
+  };
+
+  const handleGstChange = (e) => {
+    const val = e.target.value.toUpperCase();
+    setGstNumber(val);
+    // Reset verification when GST number changes
+    if (gstVerified) {
+      setGstVerified(false);
+      setGstData(null);
+    }
+    setGstError('');
+  };
+
+  // Fetch captcha from backend
+  const fetchCaptcha = useCallback(async () => {
+    setCaptchaLoading(true);
+    setGstError('');
+    try {
+      const { data } = await api.get('/gst/captcha');
+      setCaptchaImage(data.image);
+      setSessionId(data.sessionId);
+      setCaptchaInput('');
+    } catch {
+      setGstError('Failed to load captcha. Please try again.');
+    } finally {
+      setCaptchaLoading(false);
+    }
+  }, []);
+
+  // Verify GST via captcha
+  const handleVerifyGst = async () => {
+    if (!gstNumber.trim() || !GST_REGEX.test(gstNumber.trim())) {
+      setGstError('Please enter a valid 15-character GST number.');
+      return;
+    }
+    if (!sessionId || !captchaInput.trim()) {
+      setGstError('Please solve the captcha first.');
+      return;
+    }
+
+    setGstLoading(true);
+    setGstError('');
+    try {
+      const { data } = await api.post('/gst/verify', {
+        sessionId,
+        GSTIN: gstNumber.trim(),
+        captcha: captchaInput.trim()
+      });
+      setGstData(data);
+      setGstVerified(true);
+      setCaptchaImage(null);
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'Verification failed';
+      setGstError(msg);
+      setGstVerified(false);
+      setGstData(null);
+      // Auto-refresh captcha on failure
+      fetchCaptcha();
+    } finally {
+      setGstLoading(false);
+    }
+  };
+
+  // Start verification flow
+  const handleStartVerify = () => {
+    if (!gstNumber.trim() || !GST_REGEX.test(gstNumber.trim())) {
+      setGstError('Please enter a valid 15-character GST number.');
+      return;
+    }
+    setGstError('');
+    fetchCaptcha();
   };
 
   const handleSubmit = async (e) => {
@@ -51,28 +136,44 @@ const Signup = () => {
 
     setIsLoading(true);
     
-    // Log payload for debugging (can be removed later)
-    console.log("Registering payload:", {
-      email: formData.email,
-      contactNumber: formData.contactNumber,
-      // password not logged for security
-    });
-
-    const result = await register({
+    // Build registration payload
+    const payload = {
       email: formData.email.trim(),
       contactNumber: formData.contactNumber.trim(),
       password: formData.password
+    };
+
+    // Include verified GST data if available
+    if (gstVerified && gstData) {
+      payload.gstData = {
+        gstNumber: gstData.gstin || gstNumber.trim(),
+        companyName: gstData.tradeNam || gstData.lgnm || '',
+        legalName: gstData.lgnm || '',
+        status: gstData.sts || '',
+        businessType: gstData.ctb || '',
+        registrationDate: gstData.rgdt || '',
+        city: gstData.pradr?.addr?.dst || gstData.pradr?.addr?.stcd || '',
+      };
+    }
+
+    console.log("Registering payload:", {
+      email: payload.email,
+      contactNumber: payload.contactNumber,
+      hasGstData: !!payload.gstData,
     });
+
+    const result = await register(payload);
     
     setIsLoading(false);
     
     if (result.success) {
       navigate('/');
     } else {
-      // Backend error message should be displayed directly
       setError(result.message || 'Registration failed. Please try again.');
     }
   };
+
+  const isGstValid = gstNumber.trim().length === 15 && GST_REGEX.test(gstNumber.trim());
 
   return (
     <div className="min-h-screen w-full flex bg-future-midnight lg:bg-transparent">
@@ -187,6 +288,127 @@ const Signup = () => {
                 required
               />
             </div>
+
+            {/* ── GST Verification Section ── */}
+            <div className="rounded-xl border border-future-smoke bg-white/30 p-3 sm:p-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="h-4 w-4 text-future-steel" />
+                <span className="text-xs sm:text-sm font-semibold text-future-carbon">GST Verification</span>
+                <span className="text-[10px] text-future-steel">(Optional)</span>
+              </div>
+
+              {/* GST Input + Verify Button */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="gstNumber"
+                    type="text"
+                    maxLength={15}
+                    placeholder="Enter 15-digit GST Number"
+                    className="block w-full px-3 py-2.5 sm:py-3 bg-white/50 border border-future-smoke rounded-lg text-future-carbon placeholder-future-steel focus:outline-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all duration-300 text-sm min-h-[44px] font-mono uppercase tracking-wider"
+                    value={gstNumber}
+                    onChange={handleGstChange}
+                    disabled={gstVerified}
+                  />
+                </div>
+                {!gstVerified && !captchaImage && !captchaLoading && (
+                  <button
+                    type="button"
+                    onClick={handleStartVerify}
+                    disabled={!isGstValid}
+                    className="px-3 sm:px-4 py-2.5 bg-future-graphite hover:bg-future-carbon text-white rounded-lg font-semibold text-xs sm:text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap min-h-[44px] flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" /> Verify
+                  </button>
+                )}
+              </div>
+
+              {/* Captcha Section */}
+              {captchaLoading && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader className="animate-spin h-6 w-6 text-future-steel" />
+                </div>
+              )}
+
+              {captchaImage && !gstVerified && !captchaLoading && (
+                <div className="space-y-2.5 animate-fadeIn">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white border border-future-smoke rounded-lg p-2 inline-block">
+                      <img src={captchaImage} alt="Captcha" className="h-10 sm:h-11" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={fetchCaptcha}
+                      className="flex items-center gap-1 text-xs text-future-steel hover:text-future-carbon font-medium transition-colors"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter captcha..."
+                      value={captchaInput}
+                      onChange={(e) => setCaptchaInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleVerifyGst())}
+                      className="flex-1 px-3 py-2.5 bg-white/50 border border-future-smoke rounded-lg text-sm focus:outline-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 transition-all min-h-[40px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyGst}
+                      disabled={!captchaInput.trim() || gstLoading}
+                      className="px-3 sm:px-4 py-2.5 bg-future-graphite hover:bg-future-carbon text-white rounded-lg font-semibold text-xs sm:text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 min-h-[40px]"
+                    >
+                      {gstLoading ? <Loader className="animate-spin h-4 w-4" /> : <><ShieldCheck className="w-3.5 h-3.5" /> Submit</>}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* GST Error */}
+              {gstError && (
+                <div className="flex items-start gap-2 p-2.5 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600">
+                  <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                  <span>{gstError}</span>
+                </div>
+              )}
+
+              {/* GST Verified Result */}
+              {gstVerified && gstData && (
+                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg animate-fadeIn">
+                  <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-emerald-800 truncate">
+                      {gstData.tradeNam || gstData.lgnm || 'Company Verified'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        gstData.sts === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {gstData.sts || 'Unknown'}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 font-mono">{gstData.gstin}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGstVerified(false);
+                      setGstData(null);
+                      setGstNumber('');
+                      setCaptchaImage(null);
+                      setSessionId(null);
+                      setGstError('');
+                    }}
+                    className="text-emerald-400 hover:text-emerald-600 transition-colors"
+                    title="Clear and re-verify"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+            {/* ── End GST Section ── */}
 
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="relative group w-full">

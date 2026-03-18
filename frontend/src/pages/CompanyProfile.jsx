@@ -98,6 +98,10 @@ const CompanyProfile = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showBCModal, setShowBCModal] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+  // Preview data for non-subscribers
+  const [previewData, setPreviewData] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [editSaving, setEditSaving] = useState(false);
@@ -153,8 +157,36 @@ const CompanyProfile = () => {
         }
       };
       fetchReviews();
+    } else {
+      // Non-subscriber: fetch preview data
+      const fetchPreview = async () => {
+        try {
+          const { data } = await api.get(`/reviews/preview/${id}`);
+          setPreviewData(data);
+        } catch (error) {
+          console.error('Failed to fetch preview:', error);
+        }
+      };
+      
+      const fetchMyReview = async () => {
+        try {
+          if (user) {
+            const { data } = await api.get(`/reviews/me/${id}`);
+            if (data) {
+              setReviews([data]); // populate myExistingReview
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch my review:', error);
+        }
+      };
+
+      if (id.length >= 24) {
+        fetchPreview();
+        fetchMyReview();
+      }
     }
-  }, [isSubscribed, id, user?._id]);
+  }, [isSubscribed, id, user, user?._id]);
 
   // Check if the current user has already reviewed this company
   const myExistingReview = reviews.find(r => r.reviewerId === user?._id);
@@ -209,8 +241,18 @@ const CompanyProfile = () => {
   };
 
   const handleGatedAction = () => {
+    if (!user) {
+      navigate('/login', { state: { returnUrl: location.pathname } });
+      return;
+    }
     if (!isSubscribed) {
-      navigate('/subscription', { state: { view: 'form', returnUrl: location.pathname, action: 'review' } });
+      // Check free review limit
+      const count = user?.reviewCount || 0;
+      if (count < 5) {
+        setShowReviewModal(true);
+      } else {
+        setShowLimitModal(true);
+      }
     } else {
       setShowReviewModal(true);
     }
@@ -242,28 +284,35 @@ const CompanyProfile = () => {
         const companyRes = await api.get(`/companies/${id}`);
         setCompany(companyRes.data);
 
-        const reviewsRes = await api.get(`/reviews/${id}`);
-        const formattedReviews = reviewsRes.data.map(r => ({
-           id: r._id,
-           reviewerId: r.userId?._id,
-           reviewerName: r.userId?.name || 'Anonymous',
-           reviewerCompany: r.userId?.companyName || null,
-           reviewerPhoto: r.userId?.profilePhoto || null,
-           role: r.userId?.role || 'Trader',
-           isVerified: r.userId?.isSubscribed === true,
-           rating: r.rating,
-           wouldDealAgain: r.wouldDealAgain,
-           date: calculateRelativeTime(r.updatedAt || r.createdAt),
-           text: r.comment
-        }));
-        
-        // Sort: current user's review first
-        const sortedReviews = formattedReviews.sort((a, b) => {
-           if (a.reviewerId === user?._id) return -1;
-           if (b.reviewerId === user?._id) return 1;
-           return 0;
-        });
-        setReviews(sortedReviews);
+        if (isSubscribed) {
+          // Subscribers: fetch full reviews
+          const reviewsRes = await api.get(`/reviews/${id}`);
+          const formattedReviews = reviewsRes.data.map(r => ({
+             id: r._id,
+             reviewerId: r.userId?._id,
+             reviewerName: r.userId?.name || 'Anonymous',
+             reviewerCompany: r.userId?.companyName || null,
+             reviewerPhoto: r.userId?.profilePhoto || null,
+             role: r.userId?.role || 'Trader',
+             isVerified: r.userId?.isSubscribed === true,
+             rating: r.rating,
+             wouldDealAgain: r.wouldDealAgain,
+             date: calculateRelativeTime(r.updatedAt || r.createdAt),
+             text: r.comment
+          }));
+          
+          // Sort: current user's review first
+          const sortedReviews = formattedReviews.sort((a, b) => {
+             if (a.reviewerId === user?._id) return -1;
+             if (b.reviewerId === user?._id) return 1;
+             return 0;
+          });
+          setReviews(sortedReviews);
+        } else {
+          // Non-subscriber: refresh preview data
+          const previewRes = await api.get(`/reviews/preview/${id}`);
+          setPreviewData(previewRes.data);
+        }
         
         setHasSubmitted(true);
       }
@@ -275,11 +324,20 @@ const CompanyProfile = () => {
         setDealAgain(null);
         setReviewText('');
         setEditingReviewId(null); // Reset edit state
+        window.location.reload();
       }, 1500);
 
     } catch (error) {
        console.error("Failed to submit review:", error);
-       alert(error.response?.data?.message || "Something went wrong.");
+       const errorMsg = error.response?.data?.message || "Something went wrong.";
+       
+       if (error.response?.status === 403 && errorMsg.includes("free reviews")) {
+          setShowReviewModal(false);
+          setShowLimitModal(true);
+       } else {
+          // Show a modern toast or custom alert here if we had one, otherwise fallback to alert
+          alert(errorMsg);
+       }
     }
   };
 
@@ -349,6 +407,92 @@ const CompanyProfile = () => {
       setEditSaving(false);
     }
   };
+
+  const renderReviewCard = (review, isMyReview, index = 0) => (
+    <div key={review.id} className={`group hover:bg-gray-50 p-4 sm:p-5 rounded-2xl border card-hover-lift fade-in-up fade-in-delay-${Math.min(index + 1, 5)} ${isMyReview ? 'border-brand-200 bg-brand-50/30' : 'border-gray-100'}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center">
+          {/* Avatar / Initials */}
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border overflow-hidden ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
+            {review.reviewerPhoto ? (
+              <img src={`${API_BASE}${review.reviewerPhoto}`} alt="" className="w-full h-full object-cover" />
+            ) : (
+              review.reviewerCompany ? review.reviewerCompany.substring(0,2).toUpperCase() : review.reviewerName.substring(0,2).toUpperCase()
+            )}
+          </div>
+          
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {/* Name / Company */}
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (review.reviewerCompanyId) {
+                    navigate(`/company/${review.reviewerCompanyId}`);
+                  }
+                }}
+                className={`text-sm font-bold text-gray-900 truncate max-w-[120px] sm:max-w-xs transition-colors ${review.reviewerCompanyId ? 'cursor-pointer hover:text-brand-600 hover:underline' : ''}`}
+              >
+                {review.reviewerCompany || review.reviewerName}
+              </div>
+              
+              {/* Verified Badge */}
+              {review.isVerified && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100" title="Verified Subscriber">
+                  <ShieldCheck className="w-3 h-3 mr-0.5" />
+                  Verified
+                </span>
+              )}
+
+              {/* My Review Badge */}
+              {isMyReview && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-700 border border-brand-200">
+                  You
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 mt-0.5">
+              {/* Role Tag & Stars */}
+              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 bg-gray-100 px-1.5 rounded hidden sm:inline-block">
+                {review.role}
+              </span>
+              
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, idx) => {
+                   const activeColor = review.rating >= 5 ? 'bg-green-600' :
+                                       review.rating >= 4 ? 'bg-lime-500' :
+                                       review.rating >= 3 ? 'bg-yellow-400' :
+                                       review.rating >= 2 ? 'bg-orange-500' : 'bg-red-600';
+                   return (
+                     <div key={idx} className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm flex items-center justify-center ${idx < review.rating ? activeColor : 'bg-gray-100'}`}>
+                        <Star className={`w-2 h-2 sm:w-3 sm:h-3 ${idx < review.rating ? 'text-white fill-current' : 'text-gray-300'}`} />
+                     </div>
+                   );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Time message on top right, Edit button below it */}
+        <div className="flex flex-col items-end gap-1 sm:gap-2">
+          <span className="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">{review.date}</span>
+          {isMyReview && (
+            <button 
+              onClick={() => openEditReview(review)}
+              className="text-xs sm:text-sm text-brand-600 hover:text-white hover:bg-brand-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-brand-200 hover:border-brand-600 font-medium flex items-center gap-1 transition-all"
+            >
+              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+              Edit
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-gray-600 text-sm leading-relaxed">
+        "{review.text}"
+      </p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen pb-20 bg-white">
@@ -472,6 +616,12 @@ const CompanyProfile = () => {
                         Write a Review
                       </Button>
                     )}
+                    {/* Free review counter for non-subscribers */}
+                    {!isSubscribed && user && !isOwner && (
+                      <span className="text-xs text-gray-400 font-medium ml-1 self-center">
+                        {Math.max(0, 5 - (user?.reviewCount || 0))}/5 free reviews left
+                      </span>
+                    )}
                     {isSubscribed && company?.businessCard?.frontImageUrl && (
                       <button 
                         onClick={() => setShowBCModal(true)}
@@ -487,7 +637,7 @@ const CompanyProfile = () => {
               </div>
             </div>
 
-            {/* ===== RIGHT COLUMN: Rating Summary Card ===== */}
+            {/* ===== RIGHT COLUMN: Rating Summary Card (Subscribers Only) ===== */}
             {isSubscribed && totalReviews > 0 && (
               <div className="w-full lg:w-auto lg:min-w-[360px] lg:max-w-[420px] bg-white rounded-2xl border border-gray-200 shadow-lg p-5 sm:p-6 flex-shrink-0">
                 <div className="flex items-start gap-4 mb-4">
@@ -577,11 +727,74 @@ const CompanyProfile = () => {
                  </span>
               )}
             </div>
+
+            {/* Render my review completely outside the relative blocked area container if non-subscribed */}
+            {!isSubscribed && myExistingReview && (
+               <div className="p-4 sm:p-5 border-b border-gray-100 bg-white relative z-20">
+                  <div className="flex items-center justify-between mb-4">
+                     <h3 className="font-bold text-sm uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-brand-500"></div>
+                        Your Review
+                     </h3>
+                  </div>
+                  
+                  {(() => {
+                     const myRating = myExistingReview.rating || 0;
+                     const starColor = myRating >= 5 ? 'text-green-500 fill-green-500' :
+                                       myRating >= 4 ? 'text-lime-500 fill-lime-500' :
+                                       myRating >= 3 ? 'text-yellow-400 fill-yellow-400' :
+                                       myRating >= 2 ? 'text-orange-500 fill-orange-500' : 'text-red-500 fill-red-500';
+                     const stripColor = myRating >= 5 ? 'bg-green-500' :
+                                        myRating >= 4 ? 'bg-lime-500' :
+                                        myRating >= 3 ? 'bg-yellow-400' :
+                                        myRating >= 2 ? 'bg-orange-500' : 'bg-red-500';
+                     
+                     // Format date to Indian format e.g. "18 Mar 2026"
+                     const formattedDate = new Date(myExistingReview.date).toLocaleDateString('en-IN', {
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric'
+                     });
+
+                     return (
+                        <div className="p-5 sm:p-6 rounded-2xl border border-gray-200 bg-white shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                           {/* Decorative colored strip on the left */}
+                           <div className={`absolute top-0 bottom-0 left-0 w-1.5 ${stripColor}`}></div>
+                           
+                           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pl-2">
+                               <div className="flex-1">
+                                   <div className="flex items-center gap-3">
+                                      <div className="flex gap-0.5">
+                                         {[...Array(5)].map((_, idx) => (
+                                            <Star key={idx} className={`w-4 h-4 sm:w-5 sm:h-5 ${idx < myRating ? starColor : 'text-gray-200 fill-gray-200'}`} />
+                                         ))}
+                                      </div>
+                                      <span className="text-[11px] sm:text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
+                                        {formattedDate}
+                                      </span>
+                                   </div>
+                                   <p className="text-gray-800 text-sm sm:text-base leading-relaxed mt-3 font-medium">
+                                      "{myExistingReview.text}"
+                                   </p>
+                               </div>
+                               
+                               <button 
+                                  onClick={() => openEditReview(myExistingReview)}
+                                  className="shrink-0 w-full sm:w-auto px-4 py-2 border border-gray-200 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 text-gray-700 text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                               >
+                                  <Edit className="w-4 h-4" />
+                                  Edit Review
+                               </button>
+                           </div>
+                        </div>
+                     );
+                  })()}
+               </div>
+            )}
             
             <div className="p-4 sm:p-5 relative">
-              {/* [Existing Review Content Code...] */}
-              {/* Premium Content Blur Wrapper */}
-              <div className={`transition-all duration-500 min-h-[450px] ${!isSubscribed ? 'blur-md opacity-40 select-none pointer-events-none grayscale-[0.5]' : ''}`}>
+              {/* Premium Content Area */}
+              <div className={`transition-all duration-500 min-h-[450px] ${!isSubscribed ? 'select-none pointer-events-none' : ''}`}>
                 <div className="space-y-6 sm:space-y-8">
                 
                   {/* TRUST LABEL BANNER - only show if has reviews */}
@@ -605,7 +818,7 @@ const CompanyProfile = () => {
 
                   {/* Reviews List */}
                   <div className="pt-2 space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                        <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider">Recent Reviews</h3>
                     </div>
                     
@@ -621,93 +834,12 @@ const CompanyProfile = () => {
                     ) : (
                       <>
                       <div className={`${showAllReviews ? 'max-h-[600px] overflow-y-auto pr-1 scrollbar-thin' : ''} space-y-6`}>
-                      {displayedReviews.map((review) => {
+                      {displayedReviews.map((review, idx) => {
                         const isMyReview = review.reviewerId === user?._id;
-                        return (
-                          <div key={review.id} className={`group hover:bg-gray-50 p-4 sm:p-5 rounded-2xl border card-hover-lift fade-in-up fade-in-delay-${Math.min(displayedReviews.indexOf(review) + 1, 5)} ${isMyReview ? 'border-brand-200 bg-brand-50/30' : 'border-gray-100'}`}>
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center">
-                                {/* Avatar / Initials */}
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border overflow-hidden ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
-                                  {review.reviewerPhoto ? (
-                                    <img src={`${API_BASE}${review.reviewerPhoto}`} alt="" className="w-full h-full object-cover" />
-                                  ) : (
-                                    review.reviewerCompany ? review.reviewerCompany.substring(0,2).toUpperCase() : review.reviewerName.substring(0,2).toUpperCase()
-                                  )}
-                                </div>
-                                
-                                <div className="min-w-0">
-                                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                    {/* Name / Company */}
-                                    <div 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (review.reviewerCompanyId) {
-                                          navigate(`/company/${review.reviewerCompanyId}`);
-                                        }
-                                      }}
-                                      className={`text-sm font-bold text-gray-900 truncate max-w-[120px] sm:max-w-xs transition-colors ${review.reviewerCompanyId ? 'cursor-pointer hover:text-brand-600 hover:underline' : ''}`}
-                                    >
-                                      {review.reviewerCompany || review.reviewerName}
-                                    </div>
-                                    
-                                    {/* Verified Badge */}
-                                    {review.isVerified && (
-                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100" title="Verified Subscriber">
-                                        <ShieldCheck className="w-3 h-3 mr-0.5" />
-                                        Verified
-                                      </span>
-                                    )}
-
-                                    {/* My Review Badge */}
-                                    {isMyReview && (
-                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-700 border border-brand-200">
-                                        You
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    {/* Role Tag & Stars */}
-                                    <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 bg-gray-100 px-1.5 rounded hidden sm:inline-block">
-                                      {review.role}
-                                    </span>
-                                    
-                                    <div className="flex gap-0.5">
-                                      {[...Array(5)].map((_, idx) => {
-                                         const activeColor = review.rating >= 5 ? 'bg-green-600' :
-                                                             review.rating >= 4 ? 'bg-lime-500' :
-                                                             review.rating >= 3 ? 'bg-yellow-400' :
-                                                             review.rating >= 2 ? 'bg-orange-500' : 'bg-red-600';
-                                         return (
-                                           <div key={idx} className={`w-3 h-3 sm:w-4 sm:h-4 rounded-sm flex items-center justify-center ${idx < review.rating ? activeColor : 'bg-gray-100'}`}>
-                                              <Star className={`w-2 h-2 sm:w-3 sm:h-3 ${idx < review.rating ? 'text-white fill-current' : 'text-gray-300'}`} />
-                                           </div>
-                                         );
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Time message on top right, Edit button below it */}
-                              <div className="flex flex-col items-end gap-1 sm:gap-2">
-                                <span className="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">{review.date}</span>
-                                {isMyReview && (
-                                  <button 
-                                    onClick={() => openEditReview(review)}
-                                    className="text-xs sm:text-sm text-brand-600 hover:text-white hover:bg-brand-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-brand-200 hover:border-brand-600 font-medium flex items-center gap-1 transition-all"
-                                  >
-                                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    Edit
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          <p className="text-gray-600 text-sm leading-relaxed">
-                            "{review.text}"
-                          </p>
-                        </div>
-                      );
+                        // Skip if not subscribed because we ALREADY rendered it above the blur wrapper
+                        if (!isSubscribed && isMyReview) return null;
+                        
+                        return renderReviewCard(review, isMyReview, idx);
                       })}
                       </div>
                       
@@ -754,20 +886,41 @@ const CompanyProfile = () => {
               {!isSubscribed && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-b from-white/10 to-white/90">
                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl shadow-brand-900/10 border border-gray-100 w-full max-w-sm text-center transform hover:scale-[1.02] transition-transform duration-300 mx-4 fade-in-scale">
-                      {/* Sub Modal Trigger Content */}
                       <div className="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Lock className="w-6 h-6 text-brand-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Premium Intelligence Locked</h3>
-                       <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-                        Join verified textile traders who rely on TexoTrust to reduce payment risk and improve trade transparency.
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">Unlock Ratings, Full Reviews & Insights</h3>
+                       <p className="text-gray-500 text-sm mb-4 leading-relaxed">
+                        Subscribe to see average ratings, detailed reviews, and trust analysis for <span className="font-semibold text-gray-900">{company?.name}</span>.
                       </p>
+                      {/* Preview stats */}
+                      {previewData && (
+                        <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="text-2xl font-bold text-gray-900">{previewData.totalReviews}</div>
+                          <div className="text-xs text-gray-500 font-medium">reviews submitted</div>
+                        </div>
+                      )}
+                      {/* Blurred preview reviews */}
+                      {previewData?.previewReviews?.length > 0 && (
+                        <div className="mb-4 space-y-2">
+                          {previewData.previewReviews.map((pr, idx) => (
+                            <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100 text-left" style={{ filter: 'blur(4px)' }}>
+                              <div className="flex items-center gap-1 mb-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star key={i} className={`w-3 h-3 ${i < pr.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
+                                ))}
+                              </div>
+                              <p className="text-xs text-gray-600">{pr.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <Button 
                         variant="primary" 
                         onClick={() => setShowSubModal(true)}
                         className="w-full shadow-lg shadow-brand-600/20"
                       >
-                        View Premium Insights
+                        Subscribe to Unlock
                       </Button>
                       <p className="mt-4 text-xs text-gray-400 font-medium">
                         No long-term contracts • Cancel anytime
@@ -960,6 +1113,62 @@ const CompanyProfile = () => {
       </div>
 
       {/* --- MODALS --- */}
+
+      {/* Review Limit Reached Modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 modal-backdrop-blur" onClick={() => setShowLimitModal(false)}></div>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden fade-in-scale">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-orange-500"></div>
+            <button 
+              onClick={() => setShowLimitModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Star className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Review Limit Reached</h3>
+              <p className="text-gray-500 mb-2 leading-relaxed">
+                You've used all <span className="font-bold text-gray-900">5 free reviews</span>. 
+              </p>
+              <p className="text-gray-500 mb-6 leading-relaxed text-sm">
+                Subscribe to continue writing reviews and unlock full ratings, detailed reviews & trust insights.
+              </p>
+              
+              <div className="bg-gray-50 rounded-xl p-3 mb-6 border border-gray-100">
+                <div className="text-sm font-bold text-gray-900">{user?.reviewCount || 0}/5 reviews used</div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div className="bg-red-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <Button 
+                  variant="primary" 
+                  fullWidth 
+                  onClick={() => {
+                    setShowLimitModal(false);
+                    handleSubscribeRedirect();
+                  }}
+                  className="shadow-xl shadow-brand-500/20 py-3 text-base"
+                >
+                  Subscribe Now
+                </Button>
+                <button 
+                  onClick={() => setShowLimitModal(false)}
+                  className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-900"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Subscription Required Modal */}
       {showSubModal && (

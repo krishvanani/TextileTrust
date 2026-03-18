@@ -421,6 +421,26 @@ const updateCompany = asyncHandler(async (req, res) => {
   res.json(updatedCompany);
 });
 
+// @desc    Get company by GST number
+// @route   GET /api/companies/by-gst/:gst
+// @access  Public
+const getCompanyByGst = asyncHandler(async (req, res) => {
+  const gst = req.params.gst?.toUpperCase().trim();
+  if (!gst || gst.length !== 15) {
+    res.status(400);
+    throw new Error('Invalid GST number');
+  }
+
+  const company = await Company.findOne({ gst })
+    .populate('submittedBy', 'profilePhoto');
+
+  if (!company) {
+    return res.status(404).json({ message: 'No company found with this GST' });
+  }
+
+  res.json(company);
+});
+
 module.exports = {
   registerCompany,
   getCompanyById,
@@ -430,5 +450,6 @@ module.exports = {
   checkCompanyIdentity,
   uploadBusinessCard,
   uploadMiddleware,
-  updateCompany
+  updateCompany,
+  getCompanyByGst
 };

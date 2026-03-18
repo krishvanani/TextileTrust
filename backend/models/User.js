@@ -73,6 +73,10 @@ const userSchema = mongoose.Schema({
     contactNumber: String,
     email: String
   },
+  reviewCount: {
+    type: Number,
+    default: 0
+  },
   profilePhoto: {
     type: String,
     default: ''

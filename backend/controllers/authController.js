@@ -38,7 +38,7 @@ const upload = multer({
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   console.log('[DEBUG] Register Request Body:', req.body);
-  const { companyName, email, contactNumber, password } = req.body;
+  const { companyName, email, contactNumber, password, gstData } = req.body;
 
   if (!email || !contactNumber || !password) {
     res.status(400);
@@ -62,13 +62,26 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error(userExists.email === email ? 'User with this email already exists' : 'User with this contact number already exists');
     }
 
-    // Create user
-    const user = await User.create({
-      companyName: companyName || '',
+    // Build user data
+    const userData = {
+      companyName: (gstData?.companyName) || companyName || '',
       email,
       contactNumber,
       password
-    });
+    };
+
+    // If verified GST data was provided, store it in companySnapshot
+    if (gstData && gstData.gstNumber) {
+      userData.companySnapshot = {
+        gstNumber: gstData.gstNumber,
+        companyName: gstData.companyName || '',
+        city: gstData.city || '',
+        businessType: gstData.businessType || '',
+      };
+    }
+
+    // Create user
+    const user = await User.create(userData);
 
     if (user) {
       res.status(201).json({
@@ -78,6 +91,8 @@ const registerUser = asyncHandler(async (req, res) => {
         contactNumber: user.contactNumber,
         role: user.role,
         profilePhoto: user.profilePhoto || '',
+        companySnapshot: user.companySnapshot || null,
+        reviewCount: 0,
         token: generateToken(user._id)
       });
     } else {
@@ -154,6 +169,8 @@ const loginUser = asyncHandler(async (req, res) => {
       createdAt: user.createdAt,
       ownedCompanyId: user.ownedCompanyId,
       profilePhoto: user.profilePhoto || '',
+      companySnapshot: user.companySnapshot || null,
+      reviewCount: user.reviewCount || 0,
       token: generateToken(user._id),
       registeredCompanyId: company ? company._id : null
     });
@@ -182,6 +199,8 @@ const getMe = asyncHandler(async (req, res) => {
       createdAt: user.createdAt,
       ownedCompanyId: user.ownedCompanyId,
       profilePhoto: user.profilePhoto || '',
+      companySnapshot: user.companySnapshot || null,
+      reviewCount: user.reviewCount || 0,
       registeredCompanyId: company ? company._id : null
     });
   } else {
@@ -296,6 +315,8 @@ const updateProfile = asyncHandler(async (req, res) => {
     createdAt: user.createdAt,
     ownedCompanyId: user.ownedCompanyId,
     profilePhoto: user.profilePhoto || '',
+    companySnapshot: user.companySnapshot || null,
+    reviewCount: user.reviewCount || 0,
     registeredCompanyId: company ? company._id : null
   });
 });
