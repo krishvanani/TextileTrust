@@ -16,6 +16,7 @@ import {
   ThumbsDown,
   Send,
   AlertCircle,
+  ChevronRight,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import useScrollReveal from "../hooks/useScrollReveal";
@@ -60,6 +61,7 @@ const Search = () => {
   const [gstError, setGstError] = useState("");
   const [gstReviews, setGstReviews] = useState([]);
   const [gstReviewsLoading, setGstReviewsLoading] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   // Review form state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -185,12 +187,15 @@ const Search = () => {
     setReviewSubmitted(false);
 
     if (isGstNumber(term)) {
+      setLoading(true);
+      
+      // First check if this GST exists in our database
+      const existing = await checkGstInDb(term);
+      
       setGstMode(true);
       setCompanies([]);
       setHasSearched(false);
 
-      // First check if this GST exists in our database
-      const existing = await checkGstInDb(term);
       if (existing) {
         // Fetch reviews too
         setGstReviewsLoading(true);
@@ -202,9 +207,11 @@ const Search = () => {
         } finally {
           setGstReviewsLoading(false);
         }
+      } else {
+        // Only fetch captcha for GOV.IN lookup if company is not already in DB
+        fetchCaptcha();
       }
-      // Always show captcha to allow GOV.IN lookup
-      fetchCaptcha();
+      setLoading(false);
     } else {
       setGstMode(false);
       fetchCompanies(term, category);
@@ -216,10 +223,21 @@ const Search = () => {
     setSearchTerm(queryFromUrl);
     setGlobalSearchTerm('');
     if (queryFromUrl && isGstNumber(queryFromUrl)) {
-      // Don't auto-search GST on page load (requires captcha)
-      setGstMode(true);
-      checkGstInDb(queryFromUrl);
-      fetchCaptcha();
+      setLoading(true);
+      checkGstInDb(queryFromUrl).then((existing) => {
+        setGstMode(true);
+        if (!existing) {
+          fetchCaptcha();
+        } else {
+          // If it exists, fetch reviews
+          setGstReviewsLoading(true);
+          api.get(`/reviews/${existing._id}`)
+            .then(({ data }) => setGstReviews(data))
+            .catch(() => setGstReviews([]))
+            .finally(() => setGstReviewsLoading(false));
+        }
+        setLoading(false);
+      });
     } else {
       setGstMode(false);
       fetchCompanies(queryFromUrl, "All");
@@ -382,17 +400,26 @@ const Search = () => {
           {gstCompany && (
             <div className="fade-in-up">
               <div className="flex items-center gap-2 mb-3 px-1">
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Registered on TexoTrust</span>
+                {gstCompany.submittedBy ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Registered on TexoTrust</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-bold text-red-700 uppercase tracking-wider">Not Registered on TexoTrust</span>
+                  </>
+                )}
               </div>
               <Link
                 to={`/company/${gstCompany._id}`}
                 className="block group"
               >
-                <div className="p-5 sm:p-6 flex flex-col gap-4 sm:gap-0 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-br from-emerald-50 to-white rounded-2xl sm:rounded-[28px] shadow-lg border border-emerald-100 hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+                <div className={`p-5 sm:p-6 flex flex-col gap-4 sm:gap-0 sm:flex-row sm:items-center sm:justify-between rounded-2xl sm:rounded-[28px] shadow-lg border hover:shadow-xl transition-all duration-300 ${gstCompany.submittedBy ? 'bg-gradient-to-br from-emerald-50 to-white border-emerald-100 hover:border-emerald-200' : 'bg-gradient-to-br from-red-50 to-white border-red-100 hover:border-red-200'}`}>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm uppercase overflow-hidden border border-emerald-200">
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm uppercase overflow-hidden border ${gstCompany.submittedBy ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 'bg-red-100 text-red-600 border-red-200'}`}>
                         {gstCompany.submittedBy?.profilePhoto ? (
                           <img src={`${API_BASE}${gstCompany.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -400,7 +427,7 @@ const Search = () => {
                         )}
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">{gstCompany.name}</h3>
+                        <h3 className={`text-lg font-bold text-slate-800 transition-colors ${gstCompany.submittedBy ? 'group-hover:text-emerald-700' : 'group-hover:text-red-700'}`}>{gstCompany.name}</h3>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                           {gstCompany.city && (
                             <><MapPin className="w-3 h-3" /><span>{gstCompany.city}</span></>
@@ -408,7 +435,7 @@ const Search = () => {
                           <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-[10px] border border-slate-200">GST: {gstCompany.gst}</span>
                         </div>
                       </div>
-                      <ShieldCheck className="w-5 h-5 text-emerald-500 ml-auto" />
+                      {gstCompany.submittedBy && <ShieldCheck className="w-5 h-5 text-emerald-500 ml-auto" />}
                     </div>
                     {user?.isSubscribed && (
                       <div className="flex items-center gap-4 mt-2">
@@ -420,7 +447,7 @@ const Search = () => {
                       </div>
                     )}
                   </div>
-                  <div className="text-sm text-emerald-700 group-hover:text-white group-hover:bg-emerald-600 px-4 py-2.5 rounded-xl border border-emerald-200 group-hover:border-emerald-600 font-semibold flex items-center gap-1.5 transition-all">
+                  <div className={`text-sm px-4 py-2.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all ${gstCompany.submittedBy ? 'text-emerald-700 group-hover:text-white group-hover:bg-emerald-600 border-emerald-200 group-hover:border-emerald-600' : 'text-red-700 group-hover:text-white group-hover:bg-red-600 border-red-200 group-hover:border-red-600'}`}>
                     View Full Profile <ArrowRight className="w-4 h-4" />
                   </div>
                 </div>
@@ -428,14 +455,23 @@ const Search = () => {
             </div>
           )}
 
-          {/* Captcha Section (only if no GST data yet) */}
-          {!gstData && (
-            <div className="fade-in-up bg-white rounded-2xl border border-gray-200 shadow-md p-5 sm:p-7">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-5 h-5 text-brand-600" />
-                <h3 className="font-bold text-gray-900">Verify GST from Government Portal</h3>
+          {/* Captcha Section (only if no GST data yet and company not in DB) */}
+          {!gstData && !gstCompany && !loading && (
+            <div className="fade-in-up bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
+              {/* "Not Registered" Warning Header */}
+              <div className="bg-yellow-50 border-b border-yellow-200 p-5 sm:p-6 text-center relative overflow-hidden">
+                <h3 className="text-lg sm:text-xl font-bold text-yellow-800 mb-1.5 capitalize tracking-tight">This company is not registered</h3>
+                <p className="text-sm text-yellow-700/90 font-medium">This GST number does not currently exist within the TexoTrust system.</p>
               </div>
-              <p className="text-sm text-gray-500 mb-5">Solve the captcha below to fetch official taxpayer details from GST portal.</p>
+
+              <div className="p-5 sm:p-7">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-5 h-5 text-brand-600" />
+                  <h3 className="font-bold text-gray-900 text-lg">Verify to Write a Review</h3>
+                </div>
+                <p className="text-sm text-gray-500 mb-6 font-medium leading-relaxed">
+                  You can still review this company! Simply solve the captcha below to securely fetch their official taxpayer details directly from the Government GST Portal.
+                </p>
 
               {captchaLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -480,6 +516,7 @@ const Search = () => {
                   <span>{gstError}</span>
                 </div>
               )}
+              </div>
             </div>
           )}
 
@@ -684,53 +721,69 @@ const Search = () => {
                   </div>
                 ) : gstReviews.length > 0 ? (
                   <div className="space-y-4">
-                    {gstReviews.map((review) => (
-                      <div key={review._id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-all">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden">
-                              {review.userId?.profilePhoto ? (
-                                <img src={`${API_BASE}${review.userId.profilePhoto}`} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                (review.userId?.companyName || review.userId?.name || 'A').substring(0, 2).toUpperCase()
-                              )}
+                    <div className={`${showAllReviews ? 'max-h-[600px] overflow-y-auto pr-1 scrollbar-thin' : ''} space-y-4`}>
+                      {(showAllReviews ? gstReviews : gstReviews.slice(0, 3)).map((review) => (
+                        <div key={review._id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-all">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden">
+                                {review.userId?.profilePhoto ? (
+                                  <img src={`${API_BASE}${review.userId.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  (review.userId?.companyName || review.userId?.name || 'A').substring(0, 2).toUpperCase()
+                                )}
+                              </div>
+                              <div>
+                                <span className="text-sm font-bold text-gray-800">{review.userId?.companyName || review.userId?.name || 'Anonymous'}</span>
+                                {review.userId?.isSubscribed && (
+                                  <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 border border-blue-100">
+                                    <ShieldCheck className="w-2.5 h-2.5 mr-0.5" /> Verified
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-sm font-bold text-gray-800">{review.userId?.companyName || review.userId?.name || 'Anonymous'}</span>
-                              {review.userId?.isSubscribed && (
-                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 border border-blue-100">
-                                  <ShieldCheck className="w-2.5 h-2.5 mr-0.5" /> Verified
-                                </span>
-                              )}
+                            <span className="text-xs text-gray-400">{calculateRelativeTime(review.createdAt)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((s) => {
+                                const activeColor = review.rating >= 5 ? 'bg-emerald-500' :
+                                                    review.rating >= 4 ? 'bg-lime-500' :
+                                                    review.rating >= 3 ? 'bg-yellow-400' :
+                                                    review.rating >= 2 ? 'bg-orange-500' : 'bg-red-500';
+                                return (
+                                  <div key={s} className={`w-4 h-4 rounded-sm flex items-center justify-center ${s <= review.rating ? activeColor : 'bg-gray-200'}`}>
+                                    <Star className={`w-2.5 h-2.5 ${s <= review.rating ? 'text-white fill-current' : 'text-gray-400'}`} />
+                                  </div>
+                                );
+                              })}
                             </div>
+                            {review.wouldDealAgain !== undefined && (
+                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${review.wouldDealAgain ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                                {review.wouldDealAgain ? 'Would deal again' : 'Would not deal again'}
+                              </span>
+                            )}
                           </div>
-                          <span className="text-xs text-gray-400">{calculateRelativeTime(review.createdAt)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map((s) => {
-                              const activeColor = review.rating >= 5 ? 'bg-emerald-500' :
-                                                  review.rating >= 4 ? 'bg-lime-500' :
-                                                  review.rating >= 3 ? 'bg-yellow-400' :
-                                                  review.rating >= 2 ? 'bg-orange-500' : 'bg-red-500';
-                              return (
-                                <div key={s} className={`w-4 h-4 rounded-sm flex items-center justify-center ${s <= review.rating ? activeColor : 'bg-gray-200'}`}>
-                                  <Star className={`w-2.5 h-2.5 ${s <= review.rating ? 'text-white fill-current' : 'text-gray-400'}`} />
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {review.wouldDealAgain !== undefined && (
-                            <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${review.wouldDealAgain ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                              {review.wouldDealAgain ? 'Would deal again' : 'Would not deal again'}
-                            </span>
+                          {review.comment && (
+                            <p className="text-sm text-gray-600 leading-relaxed">"{review.comment}"</p>
                           )}
                         </div>
-                        {review.comment && (
-                          <p className="text-sm text-gray-600 leading-relaxed">"{review.comment}"</p>
-                        )}
+                      ))}
+                    </div>
+                    {gstReviews.length > 3 && (
+                      <div className="text-center pt-2">
+                        <button 
+                          onClick={() => setShowAllReviews(!showAllReviews)}
+                          className="inline-flex items-center text-sm font-semibold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-4 py-2 rounded-full transition-colors"
+                        >
+                          {showAllReviews ? (
+                            <div className="flex items-center">Show Less <ChevronRight className="w-4 h-4 ml-1 rotate-[-90deg]" /></div>
+                          ) : (
+                            <div className="flex items-center">View All {gstReviews.length - 3} More Reviews <ChevronRight className="w-4 h-4 ml-1 rotate-90" /></div>
+                          )}
+                        </button>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -802,12 +855,22 @@ const Search = () => {
                                 company.name?.substring(0, 2)
                               )}
                             </div>
-                            <div>
+                            <div className="flex flex-col">
                               <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-800 mr-2 group-hover:text-brand-600 transition-colors truncate tracking-tight">
                                 {company.name}
                               </h3>
                             </div>
-                            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-brand-500 flex-shrink-0 drop-shadow-sm ml-2" aria-label="Verified Company" />
+                            {company.submittedBy ? (
+                              <div className="ml-2 px-2 py-0.5 rounded-md bg-gradient-to-r from-emerald-50 to-emerald-100/50 flex items-center gap-1 border border-emerald-200 shrink-0">
+                                <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Registered</span>
+                              </div>
+                            ) : (
+                              <div className="ml-2 px-2 py-0.5 rounded-md bg-gradient-to-r from-red-50 to-red-100/50 flex items-center gap-1 border border-red-200 shrink-0">
+                                <XCircle className="w-3 h-3 text-red-600" />
+                                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Not Registered</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center text-slate-500 text-xs sm:text-sm mb-3 sm:mb-4 gap-1 sm:gap-0">
                             {company.city && (

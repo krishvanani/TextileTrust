@@ -177,7 +177,7 @@ const searchCompanies = asyncHandler(async (req, res) => {
         .sort({ createdAt: -1 });
   } else {
     // Default: Return all or recent if nothing selected
-    companies = await Company.find({}).limit(20).sort({ createdAt: -1 }).populate('submittedBy', 'profilePhoto'); 
+    companies = await Company.find({}).limit(50).sort({ createdAt: -1 }).populate('submittedBy', 'profilePhoto'); 
   }
 
   res.json(companies);

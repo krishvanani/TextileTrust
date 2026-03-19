@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload } from 'lucide-react';
+import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -520,10 +520,17 @@ const CompanyProfile = () => {
                 {/* Badges Row */}
                 <div className="flex flex-wrap items-center gap-2">
                   {isSubscribed && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                      <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-                      Verified Profile
-                    </span>
+                    company?.submittedBy ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                        <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                        Verified Profile
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
+                        <XCircle className="w-3.5 h-3.5 text-red-500" />
+                        Not Verified
+                      </span>
+                    )
                   )}
                   {isSubscribed && totalReviews > 0 && (
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${trustBadge.color} shadow-sm border`}>
