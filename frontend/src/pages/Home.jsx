@@ -208,7 +208,7 @@ const LandingPage = () => {
                                  company.name?.substring(0, 2)
                                )}
                             </div>
-                            <h4 className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base truncate mr-2">{company.name}</h4>
+                            <h4 className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm sm:text-base truncate mr-2 flex-1 min-w-0">{company.name}</h4>
                             <div className={`flex-shrink-0 ml-auto px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                                company.trustStatus === 'TRUSTED' ? 'bg-emerald-500/20 text-emerald-300' :
                                company.trustStatus === 'CAUTION' ? 'bg-amber-500/20 text-amber-300' :

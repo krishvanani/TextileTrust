@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Vanilla Test</title>
+</head>
+<body>
+  <h1>Pure HTML Firebase Test</h1>
+  <p>If this works, React/Vite is broken. If this fails, your Firebase project is broken.</p>
+  
+  <input type="text" id="phone" value="+916359754076">
+  <button id="send-otp">Send Verification OTP</button>
+  <div id="recaptcha-container"></div>
+  <p style="color:red;" id="error-log"></p>
+  <p style="color:green;" id="success-log"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB9gygMqZTUf7JdJVc0H4_NcyR18ggCmWs",
+      authDomain: "texotrust.firebaseapp.com",
+      projectId: "texotrust",
+      storageBucket: "texotrust.firebasestorage.app",
+      messagingSenderId: "261225342961",
+      appId: "1:261225342961:web:92d672a82a2be61fa28650"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById("send-otp").addEventListener("click", async () => {
+      document.getElementById("error-log").innerText = "Generating invisible reCaptcha...";
+      try {
+        if (!window.recaptchaVerifier) {
+          window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+        }
+        
+        const phone = document.getElementById("phone").value;
+        const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        
+        document.getElementById("success-log").innerText = "OTP SENT SUCCESSFULLY! Firebase Project is working perfectly.";
+        document.getElementById("error-log").innerText = "";
+        window.confirmationResult = confirmation;
+      } catch (err) {
+        document.getElementById("error-log").innerText = `Firebase Server Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

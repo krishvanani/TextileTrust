@@ -118,6 +118,7 @@ const CompanyProfile = () => {
 
   // Filter State
   const [selectedStarFilter, setSelectedStarFilter] = useState(null);
+  const recentReviewsRef = React.useRef(null);
 
   // Fetch Reviews Effect
   React.useEffect(() => {
@@ -211,6 +212,15 @@ const CompanyProfile = () => {
        setSelectedStarFilter(null);
     } else {
        setSelectedStarFilter(star);
+    }
+    
+    // Auto-scroll to reviews section on mobile view
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        if (recentReviewsRef.current) {
+          recentReviewsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
     }
   };
 
@@ -724,7 +734,7 @@ const CompanyProfile = () => {
       <div className="container-custom mt-4 sm:mt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         
         {/* Main Content: Reviews Layout - Takes 8 cols on Desktop */}
-        <div className="lg:col-span-8 space-y-4 sm:space-y-6 order-2 lg:order-2">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6 order-1 lg:order-2">
           <div className="p-0 reveal overflow-hidden border border-gray-100 bg-gray-50 rounded-2xl shadow-md">
             <div className="p-4 sm:p-5 border-b border-gray-100 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <h2 className="text-base sm:text-lg font-bold text-gray-900">Reputation Analysis</h2>
@@ -824,7 +834,7 @@ const CompanyProfile = () => {
                   {/* Clean Stats Row - REMOVED (Moved to Header/Card) */}
 
                   {/* Reviews List */}
-                  <div className="pt-2 space-y-6">
+                  <div ref={recentReviewsRef} className="pt-2 space-y-6 scroll-mt-28">
                     <div className="flex items-center justify-between mb-4">
                        <h3 className="font-bold text-gray-900 text-sm uppercase tracking-wider">Recent Reviews</h3>
                     </div>
@@ -940,7 +950,7 @@ const CompanyProfile = () => {
         </div>
 
         {/* Sidebar: Basic Info (Moves to Top on Mobile, currently Order 1) */}
-        <div className="lg:col-span-4 space-y-4 sm:space-y-6 order-1 lg:order-1 sticky top-32">
+        <div className="lg:col-span-4 space-y-4 sm:space-y-6 order-2 lg:order-1 sticky top-32">
           
           {/* REDESIGNED COMPANY DETAILS for Mobile/Tablet/Desktop Consistency */}
           <div className="p-4 sm:p-5 reveal bg-gray-50 border border-gray-100 rounded-2xl shadow-md gradient-border-card">

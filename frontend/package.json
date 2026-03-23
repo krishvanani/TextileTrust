@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/fiber": "^9.5.0",
     "axios": "^1.13.2",
+    "firebase": "^12.11.0",
     "lucide-react": "^0.562.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",

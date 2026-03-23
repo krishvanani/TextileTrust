@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Loader, Eye, EyeOff, Phone, KeyRound } from 'lucide-react';
+import { auth } from '../firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
@@ -19,7 +21,74 @@ const Login = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  // Firebase OTP States
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+  const [resendTimer, setResendTimer] = useState(0);
+
   const navigate = useNavigate();
+
+  // Clear any existing recaptcha on component mount (fixes Hot Reloading bugs)
+  useEffect(() => {
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear(); } catch (e) {}
+      window.recaptchaVerifier = null;
+    }
+  }, []);
+
+  // Firebase OTP Methods
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'login-recaptcha', {
+        size: 'invisible'
+      });
+    }
+  };
+
+  const handleSendOTP = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      setupRecaptcha();
+      const formatPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
+      const confirmation = await signInWithPhoneNumber(auth, formatPhone, window.recaptchaVerifier);
+      setConfirmationResult(confirmation);
+      setOtpSent(true);
+      setResendTimer(30);
+      
+      const interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) clearInterval(interval);
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      setError(`Failed: ${err.message}`);
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then(widgetId => window.grecaptcha.reset(widgetId));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    setError('');
+    setIsLoading(true);
+    try {
+      await confirmationResult.confirm(otp);
+      setPhoneVerified(true);
+      setError('');
+    } catch (err) {
+      setError('Invalid OTP code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -124,6 +193,8 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div id="login-recaptcha"></div>
+            
             <div className="space-y-3 sm:space-y-4">
                {error && (
                 <div className="p-3 sm:p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs sm:text-sm flex items-center animate-shake">
@@ -131,72 +202,139 @@ const Login = () => {
                   {error}
                 </div>
               )}
-            
-              <div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+
+              {!phoneVerified ? (
+                // OTP FLow
+                !otpSent ? (
+                  <div className="space-y-4">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
+                        <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
+                      <input
+                        id="phone"
+                        type="tel"
+                        placeholder="Mobile Number (+91 format)"
+                        className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border border-future-smoke rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 focus:ring-future-mist/20 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px]"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={isLoading || phoneNumber.length < 10}
+                      className="w-full flex items-center justify-center py-3 sm:py-4 px-4 bg-future-graphite hover:bg-future-carbon text-white rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-future-graphite/20 hover:shadow-future-graphite/30 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed min-h-[48px] touch-target"
+                    >
+                      {isLoading ? <Loader className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : 'Send Verification OTP'}
+                    </button>
                   </div>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="Email address"
-                    className={`block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px] ${emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-future-smoke focus:border-future-mist focus:ring-future-mist/20'}`}
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
-                    required
-                  />
-                </div>
-                {emailError && <p className="mt-1 text-xs sm:text-sm text-red-500 font-medium pl-3 sm:pl-4 animate-pulse">{emailError}</p>}
-              </div>
-
-              <div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
-                    <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
+                        <KeyRound className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
+                      <input
+                        id="otp"
+                        type="text"
+                        maxLength={6}
+                        placeholder="Enter 6-digit OTP"
+                        className="block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border border-future-smoke rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 focus:ring-future-mist/20 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px] tracking-[0.5em] font-mono text-center"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleVerifyOTP}
+                      disabled={isLoading || otp.length !== 6}
+                      className="w-full flex items-center justify-center py-3 sm:py-4 px-4 bg-future-graphite hover:bg-future-carbon text-white rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-future-graphite/20 hover:shadow-future-graphite/30 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed min-h-[48px] touch-target"
+                    >
+                      {isLoading ? <Loader className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : 'Verify & Continue'}
+                    </button>
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={handleSendOTP}
+                        disabled={resendTimer > 0 || isLoading}
+                        className="text-sm font-bold text-future-graphite hover:text-future-carbon disabled:text-future-steel transition-colors"
+                      >
+                        {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                      </button>
+                    </div>
                   </div>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    className={`block w-full pl-10 sm:pl-12 pr-12 py-3 sm:py-4 bg-white/50 border rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px] ${passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-future-smoke focus:border-future-mist focus:ring-future-mist/20'}`}
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(p => !p)}
-                    className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-future-steel hover:text-future-carbon min-w-[44px] justify-center touch-target"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  </button>
-                </div>
-                {passwordError && <p className="mt-1 text-xs sm:text-sm text-red-500 font-medium pl-3 sm:pl-4 animate-pulse">{passwordError}</p>}
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
-              <label className="flex items-center">
-                <input type="checkbox" className="h-4 w-4 text-future-graphite focus:ring-future-mist border-future-smoke rounded" />
-                <span className="ml-2 text-future-steel">Remember for 30 days</span>
-              </label>
-              <a href="#" className="font-medium text-future-graphite hover:text-future-carbon hover:underline">Forgot password?</a>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center py-3 sm:py-4 px-4 bg-future-graphite hover:bg-future-carbon text-white rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-future-graphite/20 hover:shadow-future-graphite/30 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed min-h-[48px] touch-target"
-            >
-              {isLoading ? (
-                <Loader className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                )
               ) : (
+                 // Phone is Verified, show normal login
                 <>
-                  Sign In <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                  <div>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
+                        <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
+                      <input
+                        id="email"
+                        type="email"
+                        placeholder="Email address"
+                        className={`block w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 bg-white/50 border rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px] ${emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-future-smoke focus:border-future-mist focus:ring-future-mist/20'}`}
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                        required
+                      />
+                    </div>
+                    {emailError && <p className="mt-1 text-xs sm:text-sm text-red-500 font-medium pl-3 sm:pl-4 animate-pulse">{emailError}</p>}
+                  </div>
+
+                  <div>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none text-future-steel group-focus-within:text-future-carbon transition-colors">
+                        <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </div>
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Password"
+                        className={`block w-full pl-10 sm:pl-12 pr-12 py-3 sm:py-4 bg-white/50 border rounded-xl text-future-carbon placeholder-future-steel focus:outline-none focus:ring-2 input-glow transition-all duration-300 text-sm sm:text-base min-h-[48px] ${passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : 'border-future-smoke focus:border-future-mist focus:ring-future-mist/20'}`}
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(p => !p)}
+                        className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-future-steel hover:text-future-carbon min-w-[44px] justify-center touch-target"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+                      </button>
+                    </div>
+                    {passwordError && <p className="mt-1 text-xs sm:text-sm text-red-500 font-medium pl-3 sm:pl-4 animate-pulse">{passwordError}</p>}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm pt-2">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="h-4 w-4 text-future-graphite focus:ring-future-mist border-future-smoke rounded" />
+                      <span className="ml-2 text-future-steel">Remember for 30 days</span>
+                    </label>
+                    <a href="#" className="font-medium text-future-graphite hover:text-future-carbon hover:underline">Forgot password?</a>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 sm:py-4 px-4 bg-future-graphite hover:bg-future-carbon text-white rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-future-graphite/20 hover:shadow-future-graphite/30 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed min-h-[48px] touch-target !mt-6"
+                  >
+                    {isLoading ? (
+                      <Loader className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                    ) : (
+                      <>
+                        Sign In <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                      </>
+                    )}
+                  </button>
                 </>
               )}
-            </button>
+            </div>
           </form>
 
           <p className="text-center text-future-steel text-xs sm:text-sm">
