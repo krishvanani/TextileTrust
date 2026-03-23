@@ -417,17 +417,17 @@ const Search = () => {
                 className="block group"
               >
                 <div className={`p-5 sm:p-6 flex flex-col gap-4 sm:gap-0 sm:flex-row sm:items-center sm:justify-between rounded-2xl sm:rounded-[28px] shadow-lg border hover:shadow-xl transition-all duration-300 ${gstCompany.submittedBy ? 'bg-gradient-to-br from-emerald-50 to-white border-emerald-100 hover:border-emerald-200' : 'bg-gradient-to-br from-red-50 to-white border-red-100 hover:border-red-200'}`}>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm uppercase overflow-hidden border shrink-0 ${gstCompany.submittedBy ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 'bg-red-100 text-red-600 border-red-200'}`}>
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm uppercase overflow-hidden border ${gstCompany.submittedBy ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 'bg-red-100 text-red-600 border-red-200'}`}>
                         {gstCompany.submittedBy?.profilePhoto ? (
                           <img src={`${API_BASE}${gstCompany.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                         ) : (
                           gstCompany.name?.substring(0, 2)
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`text-lg font-bold text-slate-800 truncate transition-colors ${gstCompany.submittedBy ? 'group-hover:text-emerald-700' : 'group-hover:text-red-700'}`}>{gstCompany.name}</h3>
+                      <div>
+                        <h3 className={`text-lg font-bold text-slate-800 transition-colors ${gstCompany.submittedBy ? 'group-hover:text-emerald-700' : 'group-hover:text-red-700'}`}>{gstCompany.name}</h3>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
                           {gstCompany.city && (
                             <><MapPin className="w-3 h-3" /><span>{gstCompany.city}</span></>
@@ -846,20 +846,31 @@ const Search = () => {
                       className={`block group slide-in-left slide-in-delay-${Math.min(index + 1, 5)}`}
                     >
                       <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-0 sm:flex-row sm:items-center sm:justify-between card-hover-lift active:scale-[0.995] bg-gray-50 rounded-3xl sm:rounded-[32px] shadow-md border border-gray-100 hover:border-brand-200/50 hover:bg-gray-50/90">
-                        <div className="flex-1 w-full min-w-0">
+                        <div className="flex-1 w-full">
                           <div className="flex items-center justify-start mb-2">
-                            <div className="w-14 h-14 min-w-[56px] rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-base uppercase overflow-hidden mr-3 border border-gray-200 shrink-0">
+                            <div className="w-14 h-14 min-w-[56px] rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-base uppercase overflow-hidden mr-3 border border-gray-200">
                               {company.submittedBy?.profilePhoto ? (
                                 <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 company.name?.substring(0, 2)
                               )}
                             </div>
-                            <div className="flex flex-col flex-1 min-w-0 mr-2">
-                              <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-800 group-hover:text-brand-600 transition-colors truncate tracking-tight">
+                            <div className="flex flex-col">
+                              <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-800 mr-2 group-hover:text-brand-600 transition-colors truncate tracking-tight">
                                 {company.name}
                               </h3>
                             </div>
+                            {company.submittedBy ? (
+                              <div className="ml-2 px-2 py-0.5 rounded-md bg-gradient-to-r from-emerald-50 to-emerald-100/50 flex items-center gap-1 border border-emerald-200 shrink-0">
+                                <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Registered</span>
+                              </div>
+                            ) : (
+                              <div className="ml-2 px-2 py-0.5 rounded-md bg-gradient-to-r from-red-50 to-red-100/50 flex items-center gap-1 border border-red-200 shrink-0">
+                                <XCircle className="w-3 h-3 text-red-600" />
+                                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Not Registered</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center text-slate-500 text-xs sm:text-sm mb-3 sm:mb-4 gap-1 sm:gap-0">
                             {company.city && (
@@ -873,42 +884,25 @@ const Search = () => {
                               GST: {company.gst}
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1">
-                            {user?.isSubscribed && (
-                              <div className="flex items-center space-x-3 sm:space-x-6">
-                                <div className={`flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold shadow-sm ${ratingColor}`}>
-                                  <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current mr-1 sm:mr-1.5" />
-                                  {rating > 0 ? rating.toFixed(1) : "New"}
-                                </div>
-                                <div className="text-xs sm:text-sm text-slate-500 font-medium">
-                                  {company.totalReviews || 0} Reviews
-                                </div>
+                          {user?.isSubscribed && (
+                            <div className="flex items-center space-x-3 sm:space-x-6">
+                              <div className={`flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold shadow-sm ${ratingColor}`}>
+                                <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current mr-1 sm:mr-1.5" />
+                                {rating > 0 ? rating.toFixed(1) : "New"}
                               </div>
-                            )}
-                            {!user?.isSubscribed && (
-                              <div className="flex items-center space-x-2">
-                                <div className="text-xs sm:text-sm text-slate-500 font-medium">
-                                  {company.totalReviews || 0} Reviews
-                                </div>
-                                {(company.totalReviews || 0) > 0 && (
-                                  <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">🔒 Rating locked</span>
-                                )}
+                              <div className="text-xs sm:text-sm text-slate-500 font-medium">
+                                {company.totalReviews || 0} Reviews
                               </div>
-                            )}
-                            
-                            {/* Registered Status Badge */}
-                            {company.submittedBy ? (
-                              <div className="px-2 py-0.5 rounded-md bg-gradient-to-r from-emerald-50 to-emerald-100/50 flex items-center gap-1 border border-emerald-200 shrink-0">
-                                <CheckCircle className="w-3 h-3 text-emerald-600" />
-                                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Registered</span>
+                            </div>
+                          )}
+                          {!user?.isSubscribed && (company.totalReviews || 0) > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <div className="text-xs sm:text-sm text-slate-500 font-medium">
+                                {company.totalReviews} Reviews
                               </div>
-                            ) : (
-                              <div className="px-2 py-0.5 rounded-md bg-gradient-to-r from-red-50 to-red-100/50 flex items-center gap-1 border border-red-200 shrink-0">
-                                <XCircle className="w-3 h-3 text-red-600" />
-                                <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Not Registered</span>
-                              </div>
-                            )}
-                          </div>
+                              <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">🔒 Rating locked</span>
+                            </div>
+                          )}
                         </div>
                         <div className="w-full sm:w-auto mt-2 sm:mt-0">
                           <div className="w-full sm:w-auto text-sm text-brand-600 group-hover:text-white group-hover:bg-brand-600 px-4 py-2.5 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-lg border border-brand-100 group-hover:border-brand-600 font-medium flex items-center justify-center gap-1.5 transition-all min-h-[44px] touch-target">
