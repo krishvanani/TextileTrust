@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw, Key, Trash2, Loader } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Cropper from 'react-easy-crop';
 
@@ -109,6 +109,14 @@ const Profile = () => {
   const [editProfileForm, setEditProfileForm] = React.useState({});
   const [editProfileSaving, setEditProfileSaving] = React.useState(false);
   const [editProfileError, setEditProfileError] = React.useState('');
+
+  // Password Change State
+  const [showPasswordSection, setShowPasswordSection] = React.useState(false);
+  const [passwordForm, setPasswordForm] = React.useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordLoading, setPasswordLoading] = React.useState(false);
+  const [passwordError, setPasswordError] = React.useState('');
+  const [passwordSuccess, setPasswordSuccess] = React.useState('');
+  const [deletingReviewId, setDeletingReviewId] = React.useState(null);
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -294,6 +302,55 @@ const Profile = () => {
     } catch (error) {
        console.error("Failed to submit review:", error);
        alert(error.response?.data?.message || "Something went wrong.");
+    }
+  };
+
+  // Password Change handler
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await api.put('/auth/change-password', {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordSuccess('Password changed successfully!');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => {
+        setShowPasswordSection(false);
+        setPasswordSuccess('');
+      }, 2000);
+    } catch (err) {
+      setPasswordError(err.response?.data?.message || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Delete Review handler
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this review? This action cannot be undone.')) return;
+    setDeletingReviewId(reviewId);
+    try {
+      await api.delete(`/reviews/${reviewId}`);
+      setMyReviews(prev => prev.filter(r => r._id !== reviewId));
+      await refreshUser();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete review');
+    } finally {
+      setDeletingReviewId(null);
     }
   };
 
@@ -483,6 +540,73 @@ const Profile = () => {
                                 </div>
                             </div>
                         </div>
+                     </div>
+
+                     {/* Security - Password Change */}
+                     <div className="bg-white rounded-2xl sm:rounded-[32px] shadow-sm border border-gray-200/60 p-5 sm:p-8">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center text-brand-600">
+                            <Key className="w-4 h-4 mr-2" /> Security
+                          </h3>
+                          <button
+                            onClick={() => { setShowPasswordSection(!showPasswordSection); setPasswordError(''); setPasswordSuccess(''); }}
+                            className="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:bg-brand-50 px-3 py-1 rounded-lg transition-colors"
+                          >
+                            {showPasswordSection ? 'Cancel' : 'Change Password'}
+                          </button>
+                        </div>
+                        {showPasswordSection && (
+                          <form onSubmit={handlePasswordChange} className="space-y-3 fade-in-up">
+                            <div>
+                              <input
+                                type="password"
+                                placeholder="Current Password"
+                                value={passwordForm.currentPassword}
+                                onChange={(e) => setPasswordForm(p => ({ ...p, currentPassword: e.target.value }))}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/30 transition-all"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <input
+                                type="password"
+                                placeholder="New Password"
+                                value={passwordForm.newPassword}
+                                onChange={(e) => setPasswordForm(p => ({ ...p, newPassword: e.target.value }))}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/30 transition-all"
+                                required
+                                minLength={8}
+                              />
+                            </div>
+                            <div>
+                              <input
+                                type="password"
+                                placeholder="Confirm New Password"
+                                value={passwordForm.confirmPassword}
+                                onChange={(e) => setPasswordForm(p => ({ ...p, confirmPassword: e.target.value }))}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/30 transition-all"
+                                required
+                                minLength={8}
+                              />
+                            </div>
+                            {passwordError && (
+                              <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-100">{passwordError}</p>
+                            )}
+                            {passwordSuccess && (
+                              <p className="text-xs text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">{passwordSuccess}</p>
+                            )}
+                            <button
+                              type="submit"
+                              disabled={passwordLoading}
+                              className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-lg shadow-brand-500/20 disabled:opacity-50 transition-all min-h-[44px]"
+                            >
+                              {passwordLoading ? <Loader className="w-4 h-4 animate-spin" /> : 'Update Password'}
+                            </button>
+                          </form>
+                        )}
+                        {!showPasswordSection && (
+                          <p className="text-xs text-gray-400">Last password change: Never</p>
+                        )}
                      </div>
 
                      {/* 3. Account Actions - Desktop Only */}

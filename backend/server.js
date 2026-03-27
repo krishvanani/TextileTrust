@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const rateLimit = require('express-rate-limit');
 
 // Global Error Handlers - defined early to catch import errors
 process.on('uncaughtException', (err) => {
@@ -28,20 +29,38 @@ connectDB();
 
 const app = express();
 
+// --- Rate Limiters ---
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many auth attempts, please try again later.' }
+});
+
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors({
   origin: process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',')
     : '*',
   credentials: true,
 }));
+app.use(globalLimiter);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount routers
-app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/auth', authLimiter, require('./routes/authRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/subscription', require('./routes/subscriptionRoutes'));

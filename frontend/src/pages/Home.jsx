@@ -133,7 +133,7 @@ const LandingPage = () => {
           </div>
 
    {/* Trending Section Dashboard */}
-          {trending.length > 0 && user?.isSubscribed && (
+          {trending.length > 0 && (
              <div className="mb-10 sm:mb-16 md:mb-20 text-left w-full relative z-20">
                 <div className="flex items-center mb-4 sm:mb-6 px-2 sm:px-0">
                    <div className="p-1.5 sm:p-2 bg-orange-500/10 rounded-lg mr-2 sm:mr-3">
@@ -450,8 +450,8 @@ const LandingPage = () => {
         </section>
       )}
 
-      {/* Recent Reviews Section - Hidden if not subscribed */}
-      {user?.isSubscribed && <RecentReviews />}
+      {/* Recent Reviews Section */}
+      <RecentReviews />
 
       {/* Footer is in Layout.jsx, so we just end here */}
     </div>

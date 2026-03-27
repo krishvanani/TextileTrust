@@ -11,6 +11,8 @@ import Subscription from './pages/Subscription';
 // import RegisterCompany from './pages/RegisterCompany';
 import Profile from './pages/Profile';
 import Payment from './pages/Payment';
+import NotFound from './pages/NotFound';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import { AuthProvider } from './context/AuthContext';
 import { SearchProvider } from './context/SearchContext';
@@ -24,21 +26,24 @@ function App() {
       <SearchProvider>
         <Router>
           <ScrollToTop />
-          <Layout>
-            <Toaster position="top-right" />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/subscription" element={<Subscription />} />
-              {/* <Route path="/register-company" element={<RegisterCompany />} /> */}
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/company/:id" element={<CompanyProfile />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Routes>
-          </Layout>
+          <ErrorBoundary>
+            <Layout>
+              <Toaster position="top-right" />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/subscription" element={<Subscription />} />
+                {/* <Route path="/register-company" element={<RegisterCompany />} /> */}
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/company/:id" element={<CompanyProfile />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          </ErrorBoundary>
         </Router>
       </SearchProvider>
     </AuthProvider>
@@ -46,3 +51,4 @@ function App() {
 }
 
 export default App;
+

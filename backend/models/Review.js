@@ -34,7 +34,11 @@ const reviewSchema = mongoose.Schema({
   reportCount: {
     type: Number,
     default: 0
-  }
+  },
+  reportedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true,
   collection: 'reviews'
@@ -44,3 +48,4 @@ const reviewSchema = mongoose.Schema({
 reviewSchema.index({ userId: 1, companyId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Review', reviewSchema);
+

@@ -29,34 +29,25 @@ const getReviews = asyncHandler(async (req, res) => {
 // @route   POST /api/reviews
 // @access  Private (Subscribed only)
 const addReview = asyncHandler(async (req, res) => {
-  console.log('[DEBUG] addReview Endpoint Hit');
-  console.log('[DEBUG] Request Header Auth:', req.headers.authorization ? 'Present' : 'Missing');
-  console.log('[DEBUG] Request Body:', JSON.stringify(req.body, null, 2));
-
   const { companyId, rating, comment, wouldDealAgain } = req.body;
 
   // 1. Authenticate & Subscribe Check
   if (!req.user) {
-    console.error('[DEBUG] No user found in request');
     res.status(401);
     throw new Error('Not authorized');
   }
-  
-  console.log('[DEBUG] User:', req.user._id, 'Subscribed:', req.user.isSubscribed);
 
   // Review limit is now enforced by checkReviewLimit middleware
   // No subscription gate here — free users get 5 reviews
 
   const company = await Company.findById(companyId);
   if (!company) {
-    console.error('[DEBUG] Company not found:', companyId);
     res.status(404);
     throw new Error('Company not found');
   }
 
   // 4. Ownership Check
   if (company.submittedBy && company.submittedBy.toString() === req.user.id.toString()) {
-    console.error('[DEBUG] Optimization: User owns company');
     res.status(403);
     throw new Error('You cannot review your own company');
   }
@@ -68,33 +59,25 @@ const addReview = asyncHandler(async (req, res) => {
   });
 
   if (reviewExists) {
-    console.error('[DEBUG] Duplicate review attempt');
     res.status(400);
     throw new Error('You have already reviewed this company');
   }
 
-  // 5. Create Review (Force DB Write)
-  console.log('[PERSISTENCE] Saving review to MongoDB...');
+  // 5. Create Review
   try {
-      const reviewPayload = {
+      const review = await Review.create({
         companyId,
         userId: req.user.id,
         rating: Number(rating),
         wouldDealAgain: Boolean(wouldDealAgain),
         comment
-      };
-      console.log('[DEBUG] Review Payload:', reviewPayload);
-
-      const review = await Review.create(reviewPayload);
+      });
 
       // Recalculate company stats
       await recalcCompanyStats(companyId);
 
       // 6. Increment reviewCount on User
       await User.findByIdAndUpdate(req.user.id, { $inc: { reviewCount: 1 } });
-
-      // 7. Log Success
-      console.log(`[PERSISTENCE] Review saved successfully: ${review._id}`);
 
       // Log Activity (Reviewer)
       await require('./activityController').logActivity(req.user.id, 'REVIEW', `You reviewed ${company.name}`);
@@ -520,11 +503,82 @@ const getMyReviewForCompany = asyncHandler(async (req, res) => {
   res.status(200).json(formatted);
 });
 
+// @desc    Delete a review
+// @route   DELETE /api/reviews/:reviewId
+// @access  Private (Owner only)
+const deleteReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    res.status(404);
+    throw new Error('Review not found');
+  }
+
+  // Only the review author can delete
+  if (review.userId.toString() !== req.user.id.toString()) {
+    res.status(403);
+    throw new Error('You can only delete your own reviews');
+  }
+
+  const companyId = review.companyId;
+  await Review.findByIdAndDelete(reviewId);
+
+  // Decrement user review count
+  await User.findByIdAndUpdate(req.user.id, { $inc: { reviewCount: -1 } });
+
+  // Recalculate company stats
+  await recalcCompanyStats(companyId);
+  await recalculateReputation(companyId);
+
+  res.status(200).json({ success: true, message: 'Review deleted successfully' });
+});
+
+// @desc    Report a review
+// @route   POST /api/reviews/:reviewId/report
+// @access  Private
+const reportReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    res.status(404);
+    throw new Error('Review not found');
+  }
+
+  // Prevent reporting own review
+  if (review.userId.toString() === req.user.id.toString()) {
+    res.status(400);
+    throw new Error('You cannot report your own review');
+  }
+
+  // Prevent duplicate reports
+  if (review.reportedBy && review.reportedBy.includes(req.user.id)) {
+    res.status(400);
+    throw new Error('You have already reported this review');
+  }
+
+  review.reportCount = (review.reportCount || 0) + 1;
+  if (!review.reportedBy) review.reportedBy = [];
+  review.reportedBy.push(req.user.id);
+
+  // Auto-hide if report count reaches threshold
+  if (review.reportCount >= 5) {
+    review.isHidden = true;
+  }
+
+  await review.save();
+
+  res.status(200).json({ success: true, message: 'Review reported successfully' });
+});
+
 module.exports = {
   getReviews,
   getUserReviews,
   addReview,
   updateReview,
+  deleteReview,
+  reportReview,
   getFeaturedReviews,
   getRecentReviews,
   addReviewByGst,

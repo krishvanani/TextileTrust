@@ -37,7 +37,6 @@ const upload = multer({
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  console.log('[DEBUG] Register Request Body:', req.body);
   const { companyName, email, contactNumber, password, gstData } = req.body;
 
   if (!email || !contactNumber || !password) {
@@ -143,7 +142,6 @@ const validatePassword = (password, userInfo) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
-  console.log('[DEBUG] Login Request Body:', req.body);
   const { email, password } = req.body;
 
   // Check for user email
@@ -321,6 +319,54 @@ const updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Change password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    res.status(400);
+    throw new Error('Please provide both current and new password');
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Verify current password
+  const isMatch = await user.matchPassword(currentPassword);
+  if (!isMatch) {
+    res.status(401);
+    throw new Error('Current password is incorrect');
+  }
+
+  // Validate new password strength
+  const passwordError = validatePassword(newPassword, {
+    companyName: user.companyName || '',
+    email: user.email,
+    contactNumber: user.contactNumber
+  });
+  if (passwordError) {
+    res.status(400);
+    throw new Error(passwordError);
+  }
+
+  // Prevent reusing same password
+  const isSame = await user.matchPassword(newPassword);
+  if (isSame) {
+    res.status(400);
+    throw new Error('New password must be different from current password');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({ success: true, message: 'Password changed successfully' });
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -328,5 +374,6 @@ module.exports = {
   updateSubscription,
   uploadProfilePhoto,
   upload,
-  updateProfile
+  updateProfile,
+  changePassword
 };

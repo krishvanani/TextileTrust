@@ -44,6 +44,7 @@ const Search = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
   const { user } = useAuth();
   const { setShowNavbarSearch, setSearchTerm: setGlobalSearchTerm } = useSearch();
   const searchContainerRef = React.useRef(null);
@@ -802,11 +803,38 @@ const Search = () => {
       {/* ─── NORMAL COMPANY RESULTS ─── */}
       {!gstMode && (
         <div className="container-custom max-w-4xl mt-6 sm:mt-8 md:mt-12">
-          <div className="flex justify-between items-center mb-4 sm:mb-6 px-1 sm:px-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 px-1 sm:px-2 gap-3">
             {hasSearched && (
               <h2 className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest pl-2 border-l-2 border-brand-500/30">
                 {companies.length} Result{companies.length !== 1 ? "s" : ""} Found
               </h2>
+            )}
+            {hasSearched && companies.length > 1 && (
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSortBy(val);
+                    const sorted = [...companies].sort((a, b) => {
+                      if (val === 'highest') return (b.avgRating || 0) - (a.avgRating || 0);
+                      if (val === 'most_reviews') return (b.totalReviews || 0) - (a.totalReviews || 0);
+                      if (val === 'az') return (a.name || '').localeCompare(b.name || '');
+                      return new Date(b.createdAt) - new Date(a.createdAt); // newest
+                    });
+                    setCompanies(sorted);
+                  }}
+                  className="h-9 pl-3 pr-8 bg-white rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500/20 text-slate-600 appearance-none cursor-pointer text-xs font-medium"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="highest">Highest Rated</option>
+                  <option value="most_reviews">Most Reviews</option>
+                  <option value="az">A → Z</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
             )}
           </div>
 
