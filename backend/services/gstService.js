@@ -18,14 +18,13 @@ exports.fetchCaptcha = async () => {
     jar,
     withCredentials: true,
     headers: {
-      "User-Agent": "Mozilla/5.0",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
       "Referer": "https://services.gst.gov.in/services/searchtp",
       "Accept": "application/json, text/plain, */*"
     }
   }));
 
-  // Initialize cookies by visiting the search page
-  await session.get("https://services.gst.gov.in/services/searchtp");
+
 
   // Fetch captcha image
   const captchaResponse = await session.get(
