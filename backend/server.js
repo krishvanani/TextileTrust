@@ -30,9 +30,10 @@ connectDB();
 const app = express();
 
 // --- Rate Limiters ---
+// Adjusted for local development / testing (15 minutes)
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: 15 * 60 * 1000, 
+  max: process.env.NODE_ENV === 'production' ? 500 : 5000, // relaxed for development
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests, please try again later.' }
@@ -40,7 +41,7 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // relaxed for development
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many auth attempts, please try again later.' }

@@ -65,7 +65,12 @@ const userSchema = mongoose.Schema({
   },
   companySnapshot: {
     companyName: String,
-    gstNumber: String,
+    gstNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true
+    },
     panNumber: String,
     city: String,
     businessType: String,

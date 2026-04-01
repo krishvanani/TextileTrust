@@ -71,6 +71,15 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // If verified GST data was provided, store it in companySnapshot
     if (gstData && gstData.gstNumber) {
+      // Check if another user already has this GST number
+      const existingGstUser = await User.findOne({ 'companySnapshot.gstNumber': gstData.gstNumber });
+      const existingCompany = await Company.findOne({ gst: gstData.gstNumber });
+
+      if (existingGstUser || existingCompany) {
+        res.status(409);
+        throw new Error('A user with this GST number is already registered.');
+      }
+
       userData.companySnapshot = {
         gstNumber: gstData.gstNumber,
         companyName: gstData.companyName || '',
@@ -367,6 +376,27 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Password changed successfully' });
 });
 
+// @desc    Check if GST exists
+// @route   POST /api/auth/check-gst
+// @access  Public
+const checkGst = asyncHandler(async (req, res) => {
+  const { gst } = req.body;
+  if (!gst) {
+    res.status(400);
+    throw new Error('Please provide a GST number');
+  }
+
+  const existingGstUser = await User.findOne({ 'companySnapshot.gstNumber': gst });
+  const existingCompany = await Company.findOne({ gst: gst });
+
+  if (existingGstUser || existingCompany) {
+    res.status(409);
+    throw new Error('A user with this GST number is already registered.');
+  }
+
+  res.json({ success: true, message: 'GST is available' });
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -375,5 +405,6 @@ module.exports = {
   uploadProfilePhoto,
   upload,
   updateProfile,
-  changePassword
+  changePassword,
+  checkGst
 };

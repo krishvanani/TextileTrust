@@ -27,8 +27,8 @@ import { useSearch } from "../context/SearchContext";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
-// GST number regex: 2 digits + 5 uppercase + 4 digits + 1 letter + 1 alphanumeric + Z + 1 alphanumeric
-const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i;
+// GST number regex: 15 alphanumeric characters
+const GST_REGEX = /^[0-9A-Z]{15}$/i;
 
 const isGstNumber = (input) => {
   return input && input.trim().length === 15 && GST_REGEX.test(input.trim());

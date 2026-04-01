@@ -9,7 +9,7 @@ import LiquidEther from '../components/effects/liquid';
 import Logo from '../components/ui/Logo';
 import api from '../services/api';
 
-const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i;
+const GST_REGEX = /^[0-9A-Z]{15}$/i;
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -47,9 +47,10 @@ const Signup = () => {
     const val = e.target.value.toUpperCase();
     setGstNumber(val);
     // Reset verification when GST number changes
-    if (gstVerified) {
+    if (gstVerified || captchaImage) {
       setGstVerified(false);
       setGstData(null);
+      setCaptchaImage(null);
     }
     setGstError('');
   };
@@ -105,13 +106,24 @@ const Signup = () => {
   };
 
   // Start verification flow
-  const handleStartVerify = () => {
+  const handleStartVerify = async () => {
     if (!gstNumber.trim() || !GST_REGEX.test(gstNumber.trim())) {
       setGstError('Please enter a valid 15-character GST number.');
       return;
     }
     setGstError('');
-    fetchCaptcha();
+    
+    // Check if GST is already registered before fetching Captcha
+    setGstLoading(true);
+    try {
+      await api.post('/auth/check-gst', { gst: gstNumber.trim().toUpperCase() });
+      // If available, proceed to fetch Captcha
+      fetchCaptcha();
+    } catch (err) {
+      setGstError(err.response?.data?.message || err.response?.data?.error || 'A user with this GST number is already registered.');
+    } finally {
+      setGstLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
