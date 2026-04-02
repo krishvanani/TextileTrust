@@ -17,6 +17,8 @@ import {
   Send,
   AlertCircle,
   ChevronRight,
+  User,
+  EyeOff,
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import useScrollReveal from "../hooks/useScrollReveal";
@@ -70,6 +72,7 @@ const Search = () => {
   const [reviewHover, setReviewHover] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewDealAgain, setReviewDealAgain] = useState(null);
+  const [reviewIsAnonymous, setReviewIsAnonymous] = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
@@ -286,6 +289,7 @@ const Search = () => {
         rating: reviewRating,
         comment: reviewComment,
         wouldDealAgain: reviewDealAgain,
+        isAnonymous: reviewIsAnonymous,
         gstDetails: gstData || undefined,
       });
       setReviewSubmitted(true);
@@ -297,6 +301,7 @@ const Search = () => {
         setReviewRating(0);
         setReviewComment("");
         setReviewDealAgain(null);
+        setReviewIsAnonymous(false);
         setReviewSubmitted(false);
       }, 2000);
     } catch (error) {
@@ -315,6 +320,16 @@ const Search = () => {
     if (diffInDays <= 7) return `${diffInDays}d ago`;
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+  };
+
+  // Helper for star rating colors
+  const getRatingColor = (rating) => {
+    if (rating >= 5) return '#10b981'; // emerald-500
+    if (rating >= 4) return '#84cc16'; // lime-500
+    if (rating >= 3) return '#facc15'; // yellow-400
+    if (rating >= 2) return '#f97316'; // orange-500
+    if (rating >= 1) return '#ef4444'; // red-500
+    return '#f3f4f6'; // gray-100
   };
 
   // ─── RENDER ─────────────────────────────────
@@ -594,19 +609,15 @@ const Search = () => {
               <div className="p-5 sm:p-6 space-y-5">
                 {/* Review Form */}
                 {showReviewForm && user && (user.isSubscribed || (user.reviewCount || 0) < 5) && (
-                  <form onSubmit={handleGstReviewSubmit} className="bg-gray-50 rounded-2xl border border-gray-200 p-5 space-y-4 fade-in-up">
-                    <h4 className="font-bold text-gray-800 text-sm">Share your experience</h4>
-
+                  <form onSubmit={handleGstReviewSubmit} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-6 fade-in-up shadow-sm">
                     {/* Star Rating */}
                     <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Rating</label>
-                      <div className="flex gap-1">
+                      <label className="block text-sm font-bold text-gray-700 mb-3">Rate your experience</label>
+                      <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map((star) => {
-                          const active = star <= (reviewHover || reviewRating);
-                          const color = (reviewHover || reviewRating) >= 5 ? 'bg-emerald-500' :
-                                        (reviewHover || reviewRating) >= 4 ? 'bg-lime-500' :
-                                        (reviewHover || reviewRating) >= 3 ? 'bg-yellow-400' :
-                                        (reviewHover || reviewRating) >= 2 ? 'bg-orange-500' : 'bg-red-500';
+                          const activeRating = reviewHover || reviewRating;
+                          const isActive = star <= activeRating;
+                          const bgColor = isActive ? getRatingColor(activeRating) : '#f3f4f6';
                           return (
                             <button
                               key={star}
@@ -614,11 +625,10 @@ const Search = () => {
                               onClick={() => setReviewRating(star)}
                               onMouseEnter={() => setReviewHover(star)}
                               onMouseLeave={() => setReviewHover(0)}
-                              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-all transform hover:scale-110 ${
-                                active ? color : 'bg-gray-200'
-                              }`}
+                              className="w-12 h-12 transition-transform hover:scale-105 focus:outline-none flex items-center justify-center shadow-sm rounded-lg"
+                              style={{ backgroundColor: bgColor }}
                             >
-                              <Star className={`w-5 h-5 ${active ? 'text-white fill-current' : 'text-gray-400'}`} />
+                              <Star className={`w-7 h-7 ${isActive ? 'text-white' : 'text-gray-300'} fill-current`} />
                             </button>
                           );
                         })}
@@ -627,45 +637,58 @@ const Search = () => {
 
                     {/* Would Deal Again */}
                     <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Would you deal again?</label>
-                      <div className="flex gap-3">
+                      <label className="block text-sm font-bold text-gray-700 mb-3">Would you deal with them again?</label>
+                      <div className="flex gap-4">
                         <button
                           type="button"
                           onClick={() => setReviewDealAgain(true)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border transition-all ${
-                            reviewDealAgain === true
-                              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm ring-2 ring-emerald-200'
-                              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-200 hover:text-emerald-600'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${reviewDealAgain === true ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-gray-100 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 text-gray-600'}`}
                         >
-                          <ThumbsUp className="w-4 h-4" /> Yes
+                          <ThumbsUp className="w-4 h-4 mr-2" /> Yes, definitely
                         </button>
                         <button
                           type="button"
                           onClick={() => setReviewDealAgain(false)}
-                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm border transition-all ${
-                            reviewDealAgain === false
-                              ? 'bg-red-50 border-red-300 text-red-700 shadow-sm ring-2 ring-red-200'
-                              : 'bg-white border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-600'
-                          }`}
+                          className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${reviewDealAgain === false ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-gray-100 hover:border-red-500 hover:text-red-700 hover:bg-red-50 text-gray-600'}`}
                         >
-                          <ThumbsDown className="w-4 h-4" /> No
+                          <ThumbsDown className="w-4 h-4 mr-2" /> No, avoid
                         </button>
                       </div>
                     </div>
 
                     {/* Comment */}
                     <div>
-                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Comment (optional)</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">Share your experience (Optional)</label>
                       <textarea
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
-                        placeholder="Share your experience with this company..."
+                        placeholder="e.g. Payment terms were clear, delivery was on time..."
                         maxLength={500}
-                        rows={3}
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500/30 resize-none transition-all"
+                        className="w-full border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none min-h-[100px] resize-none input-glow"
                       />
                       <p className="text-xs text-gray-400 text-right mt-1">{reviewComment.length}/500</p>
+                    </div>
+
+                    {/* Anonymous Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${reviewIsAnonymous ? 'bg-brand-100 text-brand-600' : 'bg-gray-200 text-gray-500'}`}>
+                          {reviewIsAnonymous ? <EyeOff className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">Submit Anonymously</p>
+                          <p className="text-xs text-gray-500">Your identity will be hidden from the public.</p>
+                        </div>
+                      </div>
+                      
+                      {/* Toggle Switch */}
+                      <button
+                        type="button"
+                        onClick={() => setReviewIsAnonymous(!reviewIsAnonymous)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${reviewIsAnonymous ? 'bg-brand-600' : 'bg-gray-300'}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${reviewIsAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
                     </div>
 
                     {/* Submit */}

@@ -84,14 +84,7 @@ const Subscription = () => {
   const [gstError, setGstError] = useState('');
   const [panError, setPanError] = useState('');
 
-  // Redirect if already subscribed
-  useEffect(() => {
-    if (user?.isSubscribed && user?.registeredCompanyId) {
-      navigate(`/company/${user.registeredCompanyId}`, { replace: true });
-    } else if (user?.isSubscribed) {
-      navigate('/', { replace: true });
-    }
-  }, [user, navigate]);
+  // Handle already subscribed users via a dedicated view later in the component instead of auto-redirecting.
 
   // Testimonial: starts with a random fallback, replaced by real review if available
   const [testimonial, setTestimonial] = useState(() =>
@@ -444,6 +437,48 @@ const Subscription = () => {
     }
   };
 
+
+  if (user?.isSubscribed) {
+    return (
+      <div className="min-h-screen pt-24 sm:pt-32 md:pt-40 pb-20 sm:pb-32 px-4 flex items-center justify-center bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617] relative" data-nav-theme="dark">
+        {/* Immersive Background Effects */}
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]"></div>
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <GlassCard className="max-w-xl w-full text-center p-8 sm:p-12 reveal border-2 border-brand-500/30 shadow-[0_0_80px_-15px_rgba(79,70,229,0.3)] backdrop-blur-3xl bg-gradient-to-b from-[#1e293b]/90 to-[#0f172a]/90 relative overflow-hidden z-10">
+          {/* Intense Inner Glow */}
+          <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-brand-500/40 blur-[70px] rounded-full pointer-events-none"></div>
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-b from-brand-500/20 to-brand-600/5 mb-8 border border-brand-400/40 backdrop-blur-md shadow-[0_0_30px_0_rgba(79,70,229,0.3)]">
+              <ShieldCheck className="w-12 h-12 text-brand-400 drop-shadow-md" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 tracking-tight">You're Already Subscribed!</h2>
+            <p className="text-brand-100/70 text-lg mb-10 leading-relaxed font-light">
+              You currently have an active premium subscription. Your business profile is verified and live on the TexoTrust network.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-5 justify-center mt-6">
+               <button 
+                 onClick={() => navigate('/')} 
+                 className="px-8 py-4 rounded-xl text-base font-extrabold bg-[#1e293b] hover:bg-[#334155] border border-[#475569] text-white shadow-xl justify-center flex items-center transition-all duration-300 hover:border-white/30"
+               >
+                 Go to Home
+               </button>
+               {user?.registeredCompanyId && (
+                 <button 
+                   onClick={() => navigate(`/company/${user.registeredCompanyId}`)} 
+                   className="px-10 py-4 rounded-xl text-base font-extrabold bg-brand-600 hover:bg-brand-500 text-white shadow-[0_0_40px_-5px_rgba(79,70,229,0.8)] border border-brand-400/60 justify-center flex items-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_-5px_rgba(79,70,229,1)]"
+                 >
+                   View My Company
+                 </button>
+               )}
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  }
 
   if (view === 'success') {
     return (
@@ -1170,8 +1205,124 @@ const Subscription = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-24 relative bg-future-midnight" data-nav-theme="dark">
+        <div className="container-custom relative z-10 max-w-5xl mx-auto reveal">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-brand-100/70 max-w-2xl mx-auto text-lg font-light">Choose the plan that fits your business needs. Upgrade anytime.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Free Tier */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl relative">
+              <h3 className="text-2xl font-semibold text-white mb-2">Basic</h3>
+              <p className="text-gray-400 text-sm mb-6">For businesses exploring the platform.</p>
+              <div className="mb-8 flex items-baseline">
+                <span className="text-5xl font-bold text-white">₹0</span>
+                <span className="text-gray-500 ml-2"> / forever</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start text-gray-300">
+                  <CheckCircle className="w-5 h-5 mr-3 text-gray-400 shrink-0 mt-0.5" /> 
+                  <span>Search companies by name or GST</span>
+                </li>
+                <li className="flex items-start text-gray-300">
+                  <CheckCircle className="w-5 h-5 mr-3 text-gray-400 shrink-0 mt-0.5" /> 
+                  <span>View basic company details</span>
+                </li>
+                <li className="flex items-start text-gray-300">
+                  <CheckCircle className="w-5 h-5 mr-3 text-gray-400 shrink-0 mt-0.5" /> 
+                  <span>Submit reviews & ratings</span>
+                </li>
+                <li className="flex items-start text-gray-500">
+                  <span className="w-5 h-5 mr-3 shrink-0 flex items-center justify-center mt-0.5 border border-gray-600 rounded-full text-[10px] font-bold">-</span>
+                  <span>No verified profile badge</span>
+                </li>
+                <li className="flex items-start text-gray-500">
+                  <span className="w-5 h-5 mr-3 shrink-0 flex items-center justify-center mt-0.5 border border-gray-600 rounded-full text-[10px] font-bold">-</span>
+                  <span>No credit risk reports</span>
+                </li>
+              </ul>
+              {user ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full justify-center px-4 py-3 rounded-lg border border-brand-500/40 bg-brand-500/10 text-brand-300 font-bold text-sm cursor-default flex items-center transition-all"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" /> Your Current Plan
+                </button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/signup')} 
+                  className="w-full justify-center border-white/20 text-white hover:bg-white/10"
+                >
+                  Get Started for Free
+                </Button>
+              )}
+            </div>
+
+            {/* Premium Tier */}
+            <div className="bg-gradient-to-b from-brand-900/40 to-[#020617] backdrop-blur-xl border border-brand-500/50 rounded-3xl p-8 sm:p-10 shadow-[0_0_50px_-12px_rgba(79,70,229,0.4)] relative transform md:-translate-y-4 md:scale-105">
+              <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2">
+                <span className="bg-brand-500 text-white text-xs font-bold uppercase tracking-wider py-1.5 px-5 rounded-full shadow-lg shadow-brand-500/30">Most Popular</span>
+              </div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 rounded-full blur-[40px] pointer-events-none"></div>
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-6 h-6 text-yellow-400" />
+                  <h3 className="text-2xl font-semibold text-white">Premium</h3>
+                </div>
+                <p className="text-brand-100/70 text-sm mb-6">For active traders and manufacturers.</p>
+                <div className="mb-8 flex items-baseline">
+                  <span className="text-5xl font-bold text-white">₹1000</span>
+                  <span className="text-brand-100/50 ml-2"> / month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-start text-white">
+                    <CheckCircle className="w-5 h-5 mr-3 text-brand-400 shrink-0 mt-0.5" /> 
+                    <span className="font-medium">Every feature in Basic, plus:</span>
+                  </li>
+                  <li className="flex items-start text-gray-200">
+                    <CheckCircle className="w-5 h-5 mr-3 text-brand-400 shrink-0 mt-0.5" /> 
+                    <span>Verified Company Profile & Trust Badge</span>
+                  </li>
+                  <li className="flex items-start text-gray-200">
+                    <CheckCircle className="w-5 h-5 mr-3 text-brand-400 shrink-0 mt-0.5" /> 
+                    <span>Unlimited Credit Risk Reports</span>
+                  </li>
+                  <li className="flex items-start text-gray-200">
+                    <CheckCircle className="w-5 h-5 mr-3 text-brand-400 shrink-0 mt-0.5" /> 
+                    <span>Advanced search & premium filters</span>
+                  </li>
+                  <li className="flex items-start text-gray-200">
+                    <CheckCircle className="w-5 h-5 mr-3 text-brand-400 shrink-0 mt-0.5" /> 
+                    <span>Direct messaging to CEOs / Managers</span>
+                  </li>
+                </ul>
+                <Button 
+                  variant="primary" 
+                  onClick={() => {
+                    if (!user) {
+                      navigate('/login', { state: { from: '/subscription?view=form' } });
+                    } else {
+                      setSearchParams({ view: 'form' });
+                    }
+                  }} 
+                  className="w-full justify-center shadow-2xl shadow-brand-500/30 font-bold text-lg py-4"
+                >
+                  Upgrade to Premium
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Main Features Grid */}
-      <section className="py-24">
+      <section className="py-24 bg-white">
         <div className="container-custom">
           <div className="text-center mb-20 reveal">
             <h2 className="text-3xl font-bold text-future-carbon mb-4">Exclusive Pro Features</h2>

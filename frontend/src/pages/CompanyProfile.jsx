@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle } from 'lucide-react';
+import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle, EyeOff } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -113,6 +113,7 @@ const CompanyProfile = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const [dealAgain, setDealAgain] = useState(null); // true | false
   const [reviewText, setReviewText] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState(null); // Track which review is being edited
 
@@ -139,6 +140,7 @@ const CompanyProfile = () => {
             isVerified: r.userId?.isSubscribed === true,
             rating: r.rating,
             wouldDealAgain: r.wouldDealAgain,
+            isAnonymous: r.isAnonymous,
             date: calculateRelativeTime(r.updatedAt || r.createdAt),
             text: r.comment
           }));
@@ -270,7 +272,8 @@ const CompanyProfile = () => {
           companyId: id,
           rating,
           wouldDealAgain: dealAgain,
-          comment: reviewText
+          comment: reviewText,
+          isAnonymous
         };
 
         // Check if editing or creating
@@ -297,6 +300,7 @@ const CompanyProfile = () => {
              isVerified: r.userId?.isSubscribed === true,
              rating: r.rating,
              wouldDealAgain: r.wouldDealAgain,
+             isAnonymous: r.isAnonymous,
              date: calculateRelativeTime(r.updatedAt || r.createdAt),
              text: r.comment
           }));
@@ -323,6 +327,7 @@ const CompanyProfile = () => {
         setRating(0);
         setDealAgain(null);
         setReviewText('');
+        setIsAnonymous(false);
         setEditingReviewId(null); // Reset edit state
         window.location.reload();
       }, 1500);
@@ -348,13 +353,15 @@ const CompanyProfile = () => {
     setRating(review.rating);
     setDealAgain(review.wouldDealAgain);
     setReviewText(review.text);
+    setIsAnonymous(review.isAnonymous || false);
     setEditingReviewId(review.id);
     
     // Store initial state for comparison
     setInitialReviewState({
       rating: review.rating,
       dealAgain: review.wouldDealAgain,
-      reviewText: review.text
+      reviewText: review.text,
+      isAnonymous: review.isAnonymous || false
     });
     
     setShowReviewModal(true);
@@ -408,16 +415,21 @@ const CompanyProfile = () => {
     }
   };
 
-  const renderReviewCard = (review, isMyReview, index = 0) => (
+  const renderReviewCard = (review, isMyReview, index = 0) => {
+    const displayName = review.isAnonymous ? 'Anonymous User' : (review.reviewerCompany || review.reviewerName);
+    const displayPhoto = review.isAnonymous ? null : review.reviewerPhoto;
+    const displayInitials = review.isAnonymous ? 'AU' : (review.reviewerCompany ? review.reviewerCompany.substring(0,2) : review.reviewerName.substring(0,2)).toUpperCase();
+
+    return (
     <div key={review.id} className={`group hover:bg-gray-50 p-4 sm:p-5 rounded-2xl border card-hover-lift fade-in-up fade-in-delay-${Math.min(index + 1, 5)} ${isMyReview ? 'border-brand-200 bg-brand-50/30' : 'border-gray-100'}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center">
           {/* Avatar / Initials */}
           <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border overflow-hidden ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
-            {review.reviewerPhoto ? (
-              <img src={`${API_BASE}${review.reviewerPhoto}`} alt="" className="w-full h-full object-cover" />
+            {displayPhoto ? (
+              <img src={`${API_BASE}${displayPhoto}`} alt="" className="w-full h-full object-cover" />
             ) : (
-              review.reviewerCompany ? review.reviewerCompany.substring(0,2).toUpperCase() : review.reviewerName.substring(0,2).toUpperCase()
+              displayInitials
             )}
           </div>
           
@@ -427,17 +439,17 @@ const CompanyProfile = () => {
               <div 
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (review.reviewerCompanyId) {
+                  if (review.reviewerCompanyId && !review.isAnonymous) {
                     navigate(`/company/${review.reviewerCompanyId}`);
                   }
                 }}
-                className={`text-sm font-bold text-gray-900 truncate max-w-[120px] sm:max-w-xs transition-colors ${review.reviewerCompanyId ? 'cursor-pointer hover:text-brand-600 hover:underline' : ''}`}
+                className={`text-sm font-bold text-gray-900 truncate max-w-[120px] sm:max-w-xs transition-colors ${(review.reviewerCompanyId && !review.isAnonymous) ? 'cursor-pointer hover:text-brand-600 hover:underline' : ''}`}
               >
-                {review.reviewerCompany || review.reviewerName}
+                {displayName}
               </div>
               
               {/* Verified Badge */}
-              {review.isVerified && (
+              {review.isVerified && !review.isAnonymous && (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100" title="Verified Subscriber">
                   <ShieldCheck className="w-3 h-3 mr-0.5" />
                   Verified
@@ -447,7 +459,7 @@ const CompanyProfile = () => {
               {/* My Review Badge */}
               {isMyReview && (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-700 border border-brand-200">
-                  You
+                  You {review.isAnonymous ? '(Anonymous)' : ''}
                 </span>
               )}
             </div>
@@ -493,6 +505,7 @@ const CompanyProfile = () => {
       </p>
     </div>
   );
+  };
 
   return (
     <div className="min-h-screen pb-20 bg-white">
@@ -741,7 +754,7 @@ const CompanyProfile = () => {
                   <div className="flex items-center justify-between mb-4">
                      <h3 className="font-bold text-sm uppercase tracking-wider text-gray-900 flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-brand-500"></div>
-                        Your Review
+                        Your Review {myExistingReview.isAnonymous ? '(Anonymous to Public)' : ''}
                      </h3>
                   </div>
                   
@@ -1300,6 +1313,28 @@ const CompanyProfile = () => {
                     ></textarea>
                   </div>
 
+                  {/* Anonymous Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${isAnonymous ? 'bg-brand-100 text-brand-600' : 'bg-gray-200 text-gray-500'}`}>
+                        {isAnonymous ? <EyeOff className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">Submit Anonymously</p>
+                        <p className="text-xs text-gray-500">Your identity will be hidden from the public.</p>
+                      </div>
+                    </div>
+                    
+                    {/* Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAnonymous(!isAnonymous)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${isAnonymous ? 'bg-brand-600' : 'bg-gray-300'}`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+
                   {/* Submit Queue */}
                   <div className="pt-2">
                     <Button 
@@ -1313,7 +1348,8 @@ const CompanyProfile = () => {
                         (editingReviewId && initialReviewState && 
                           rating === initialReviewState.rating && 
                           dealAgain === initialReviewState.dealAgain && 
-                          reviewText === initialReviewState.reviewText
+                          reviewText === initialReviewState.reviewText &&
+                          isAnonymous === initialReviewState.isAnonymous
                         )
                       }
                     >

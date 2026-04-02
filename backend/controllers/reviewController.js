@@ -20,7 +20,18 @@ const getReviews = asyncHandler(async (req, res) => {
   // STRICT: Fetch from MongoDB, Sort DESC
   const reviews = await Review.find({ companyId: companyId })
     .populate('userId', 'name companyName role isSubscribed ownedCompanyId profilePhoto') // Populate user details
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Sanitize public data for anonymous reviews
+  reviews.forEach(r => {
+    if (r.isAnonymous && r.userId) {
+      r.userId.name = 'Anonymous User';
+      r.userId.companyName = undefined;
+      r.userId.ownedCompanyId = undefined;
+      r.userId.profilePhoto = undefined;
+    }
+  });
 
   res.status(200).json(reviews);
 });
@@ -29,7 +40,7 @@ const getReviews = asyncHandler(async (req, res) => {
 // @route   POST /api/reviews
 // @access  Private (Subscribed only)
 const addReview = asyncHandler(async (req, res) => {
-  const { companyId, rating, comment, wouldDealAgain } = req.body;
+  const { companyId, rating, comment, wouldDealAgain, isAnonymous } = req.body;
 
   // 1. Authenticate & Subscribe Check
   if (!req.user) {
@@ -70,7 +81,8 @@ const addReview = asyncHandler(async (req, res) => {
         userId: req.user.id,
         rating: Number(rating),
         wouldDealAgain: Boolean(wouldDealAgain),
-        comment
+        comment,
+        isAnonymous: Boolean(isAnonymous)
       });
 
       // Recalculate company stats
@@ -167,7 +179,7 @@ const recalculateReputation = async (companyId) => {
 // @access  Private (Owner only)
 const updateReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
-  const { rating, comment, wouldDealAgain } = req.body;
+  const { rating, comment, wouldDealAgain, isAnonymous } = req.body;
 
   // 1. Auth Check
   if (!req.user) {
@@ -192,6 +204,7 @@ const updateReview = asyncHandler(async (req, res) => {
   review.rating = rating !== undefined ? Number(rating) : review.rating;
   review.comment = comment !== undefined ? comment : review.comment;
   review.wouldDealAgain = wouldDealAgain !== undefined ? Boolean(wouldDealAgain) : review.wouldDealAgain;
+  review.isAnonymous = isAnonymous !== undefined ? Boolean(isAnonymous) : review.isAnonymous;
   review.updatedAt = Date.now();
 
   await review.save();
@@ -237,9 +250,9 @@ const getFeaturedReviews = asyncHandler(async (req, res) => {
     .map(r => ({
       rating: r.rating,
       comment: r.comment,
-      reviewerCompany: r.userId.companyName || 'Verified Business',
+      reviewerCompany: r.isAnonymous ? 'Anonymous User' : r.userId.companyName || 'Verified Business',
       reviewerRole: r.userId.role || 'TRADER',
-      reviewerPhoto: r.userId.profilePhoto || null,
+      reviewerPhoto: r.isAnonymous ? null : r.userId.profilePhoto || null,
       companyName: r.companyId.name,
       companyCity: r.companyId.city,
       companyType: r.companyId.businessType,
@@ -313,9 +326,9 @@ const getRecentReviews = asyncHandler(async (req, res) => {
       comment: r.comment,
       createdAt: r.createdAt,
       user: {
-        name: r.userId.companyName || 'Anonymous', // Use Company Name as User Name for B2B context, or fallback
-        photo: r.userId.profilePhoto,
-        location: r.userId.city || 'Global'
+        name: r.isAnonymous ? 'Anonymous User' : (r.userId.companyName || 'Anonymous'), // Use Company Name as User Name for B2B context, or fallback
+        photo: r.isAnonymous ? null : r.userId.profilePhoto,
+        location: r.isAnonymous ? 'Global' : (r.userId.city || 'Global')
       },
       company: {
         id: r.companyId._id,
@@ -334,7 +347,7 @@ const getRecentReviews = asyncHandler(async (req, res) => {
 // @route   POST /api/reviews/gst
 // @access  Private (Subscribed only)
 const addReviewByGst = asyncHandler(async (req, res) => {
-  const { gst, rating, comment, wouldDealAgain, gstDetails } = req.body;
+  const { gst, rating, comment, wouldDealAgain, gstDetails, isAnonymous } = req.body;
 
   // 1. Auth & subscription check
   if (!req.user) {
@@ -418,7 +431,8 @@ const addReviewByGst = asyncHandler(async (req, res) => {
     userId: req.user.id,
     rating: Number(rating),
     wouldDealAgain: Boolean(wouldDealAgain),
-    comment
+    comment,
+    isAnonymous: Boolean(isAnonymous)
   });
 
   // 6. Increment reviewCount on User
@@ -496,6 +510,7 @@ const getMyReviewForCompany = asyncHandler(async (req, res) => {
     isVerified: review.userId?.isSubscribed === true,
     rating: review.rating,
     wouldDealAgain: review.wouldDealAgain,
+    isAnonymous: review.isAnonymous,
     date: review.updatedAt || review.createdAt,
     text: review.comment
   };

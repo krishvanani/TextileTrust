@@ -31,6 +31,10 @@ const reviewSchema = mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isAnonymous: {
+    type: Boolean,
+    default: false
+  },
   reportCount: {
     type: Number,
     default: 0

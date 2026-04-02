@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw, Key, Trash2, Loader } from 'lucide-react';
+import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw, Key, Trash2, Loader, EyeOff } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Cropper from 'react-easy-crop';
 
@@ -80,8 +80,10 @@ const Profile = () => {
   const [showReviewModal, setShowReviewModal] = React.useState(false);
   const [editingReviewId, setEditingReviewId] = React.useState(null);
   const [rating, setRating] = React.useState(0);
+  const [hoverRating, setHoverRating] = React.useState(0);
   const [dealAgain, setDealAgain] = React.useState(null);
   const [reviewText, setReviewText] = React.useState('');
+  const [isAnonymous, setIsAnonymous] = React.useState(false);
   const [hasSubmitted, setHasSubmitted] = React.useState(false);
   const [initialReviewState, setInitialReviewState] = React.useState(null);
   const [showAllReviews, setShowAllReviews] = React.useState(false);
@@ -254,17 +256,29 @@ const Profile = () => {
     }
   }, [user]);
 
+  // Helper for star rating colors
+  const getRatingColor = (rating) => {
+    if (rating >= 5) return '#10b981'; // emerald-500
+    if (rating >= 4) return '#84cc16'; // lime-500
+    if (rating >= 3) return '#facc15'; // yellow-400
+    if (rating >= 2) return '#f97316'; // orange-500
+    if (rating >= 1) return '#ef4444'; // red-500
+    return '#f3f4f6'; // gray-100
+  };
+
   // Handlers
   const openEditReview = (review) => {
     setRating(review.rating);
     setDealAgain(review.wouldDealAgain);
     setReviewText(review.comment);
+    setIsAnonymous(review.isAnonymous || false);
     setEditingReviewId(review._id);
     
     setInitialReviewState({
       rating: review.rating,
       dealAgain: review.wouldDealAgain,
-      reviewText: review.comment
+      reviewText: review.comment,
+      isAnonymous: review.isAnonymous || false
     });
     
     setShowReviewModal(true);
@@ -277,7 +291,8 @@ const Profile = () => {
           companyId: myReviews.find(r => r._id === editingReviewId).companyId._id,
           rating,
           wouldDealAgain: dealAgain,
-          comment: reviewText
+          comment: reviewText,
+          isAnonymous
         };
 
         if (editingReviewId) {
@@ -296,6 +311,7 @@ const Profile = () => {
         setRating(0);
         setDealAgain(null);
         setReviewText('');
+        setIsAnonymous(false);
         setEditingReviewId(null);
       }, 1500);
 
@@ -710,7 +726,10 @@ const Profile = () => {
                              <div key={review._id} className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-brand-200/50 transition-colors group">
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-2.5 sm:mb-3">
                                    <div className="min-w-0 sm:mr-4">
-                                      <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1 sm:mb-1.5 group-hover:text-brand-600 transition-colors truncate">{review.companyId?.name || "Unknown Company"}</h4>
+                                      <div className="flex items-center gap-2 mb-1 sm:mb-1.5">
+                                        <h4 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-brand-600 transition-colors truncate">{review.companyId?.name || "Unknown Company"}</h4>
+                                        {review.isAnonymous && <span className="text-[10px] bg-brand-50 text-brand-600 px-1.5 py-0.5 rounded font-bold border border-brand-100">Anonymous</span>}
+                                      </div>
                                       <div className="flex items-center text-xs text-gray-500">
                                          <div className="flex gap-0.5 mr-2.5">
                                            {[...Array(5)].map((_, idx) => {
@@ -803,16 +822,24 @@ const Profile = () => {
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">Rate your experience</label>
                     <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setRating(star)}
-                          className={`p-1 transition-transform hover:scale-110 focus:outline-none ${rating >= star ? 'text-yellow-400 scale-110' : 'text-gray-200 hover:text-yellow-200'}`}
-                        >
-                          <Star className="w-8 h-8 fill-current" />
-                        </button>
-                      ))}
+                      {[1, 2, 3, 4, 5].map((star) => {
+                        const activeRating = hoverRating || rating;
+                        const isActive = star <= activeRating;
+                        const bgColor = isActive ? getRatingColor(activeRating) : '#f3f4f6';
+                        return (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="w-12 h-12 transition-transform hover:scale-105 focus:outline-none flex items-center justify-center shadow-sm rounded-lg"
+                            style={{ backgroundColor: bgColor }}
+                          >
+                            <Star className={`w-7 h-7 ${isActive ? 'text-white' : 'text-gray-300'} fill-current`} />
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -823,14 +850,14 @@ const Profile = () => {
                       <button
                         type="button"
                         onClick={() => setDealAgain(true)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-indigo-500 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === true ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-gray-100 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 text-gray-600'}`}
                       >
                         <ThumbsUp className="w-4 h-4 mr-2" /> Yes, definitely
                       </button>
                       <button
                         type="button"
                         onClick={() => setDealAgain(false)}
-                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === false ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-gray-100 hover:border-gray-200 text-gray-600'}`}
+                        className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center transition-all ${dealAgain === false ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-gray-100 hover:border-red-500 hover:text-red-700 hover:bg-red-50 text-gray-600'}`}
                       >
                         <Lock className="w-4 h-4 mr-2 rotate-180" /> No, avoid
                       </button>
@@ -840,12 +867,34 @@ const Profile = () => {
                   {/* Comment */}
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">Share your experience (Optional)</label>
-                    <textarea 
+                      <textarea 
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                       placeholder="e.g. Payment terms were clear, delivery was on time..."
                       className="w-full border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none min-h-[100px] resize-none input-glow"
                     ></textarea>
+                  </div>
+
+                  {/* Anonymous Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${isAnonymous ? 'bg-brand-100 text-brand-600' : 'bg-gray-200 text-gray-500'}`}>
+                        {isAnonymous ? <EyeOff className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">Submit Anonymously</p>
+                        <p className="text-xs text-gray-500">Your identity will be hidden from the public.</p>
+                      </div>
+                    </div>
+                    
+                    {/* Toggle Switch */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAnonymous(!isAnonymous)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${isAnonymous ? 'bg-brand-600' : 'bg-gray-300'}`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
                   </div>
 
                   {/* Submit Queue */}
@@ -861,7 +910,8 @@ const Profile = () => {
                         (editingReviewId && initialReviewState && 
                           rating === initialReviewState.rating && 
                           dealAgain === initialReviewState.dealAgain && 
-                          reviewText === initialReviewState.reviewText
+                          reviewText === initialReviewState.reviewText &&
+                          isAnonymous === initialReviewState.isAnonymous
                         )
                       }
                     >
