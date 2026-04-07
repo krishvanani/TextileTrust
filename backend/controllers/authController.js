@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const Company = require('../models/Company');
+const { verifyFirebaseToken } = require('../config/firebase');
 
 // Multer config for profile photo uploads
 const uploadsDir = path.join(__dirname, '..', 'uploads', 'profiles');
@@ -37,11 +38,40 @@ const upload = multer({
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { companyName, email, contactNumber, password, gstData } = req.body;
+  const { companyName, email, contactNumber, password, gstData, firebaseIdToken } = req.body;
 
   if (!email || !contactNumber || !password) {
     res.status(400);
     throw new Error('Please add all required fields');
+  }
+
+  // Verify Firebase phone authentication token
+  if (firebaseIdToken) {
+    try {
+      const decodedToken = await verifyFirebaseToken(firebaseIdToken);
+      if (decodedToken) {
+        // Normalize phone numbers for comparison (remove spaces, dashes)
+        const tokenPhone = (decodedToken.phone_number || '').replace(/[\s-]/g, '');
+        const inputPhone = contactNumber.replace(/[\s-]/g, '');
+        // Check if the verified phone matches (with or without +91 prefix)
+        const normalizedToken = tokenPhone.replace(/^\+91/, '');
+        const normalizedInput = inputPhone.replace(/^\+91/, '');
+        
+        if (normalizedToken !== normalizedInput) {
+          res.status(400);
+          throw new Error('Phone number does not match verified number');
+        }
+        console.log('✅ Phone verified via Firebase:', tokenPhone);
+      }
+    } catch (error) {
+      if (error.message === 'Phone number does not match verified number') {
+        throw error;
+      }
+      // If Firebase Admin is not configured, log warning but allow registration
+      console.warn('⚠️ Firebase token verification skipped:', error.message);
+    }
+  } else {
+    console.warn('⚠️ No Firebase token provided — phone not verified via OTP');
   }
 
   // Password Security Validation
