@@ -782,7 +782,7 @@ const Subscription = () => {
                       <div>
                          <label htmlFor="businessType" className="block text-sm font-medium text-future-steel mb-2">Business Type <span className="text-brand-500">*</span></label>
                           <div className="relative">
-                            <select id="businessType" value={formData.businessType} onChange={handleInputChange} className="w-full bg-white/50 border border-future-smoke text-future-carbon text-sm rounded-xl block p-3 px-4 transition-all duration-300 outline-none appearance-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 min-h-[48px]" required>
+                            <select id="businessType" value={formData.businessType} onChange={handleInputChange} className="w-full truncate bg-white/50 border border-future-smoke text-future-carbon text-sm rounded-xl block p-3 pr-10 transition-all duration-300 outline-none appearance-none focus:border-future-mist focus:ring-2 focus:ring-future-mist/20 min-h-[48px]" required>
                               <option value="" disabled hidden>Select Business Type</option>
                               <option value="Manufacturer">Manufacturer</option>
                               <option value="Trader">Trader</option>
@@ -1048,7 +1048,7 @@ const Subscription = () => {
                               id="businessType"
                               value={formData.businessType}
                               onChange={handleInputChange}
-                              className="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 block p-3 px-4 transition-all duration-300 outline-none shadow-sm appearance-none"
+                              className="w-full truncate bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 block p-3 pr-10 transition-all duration-300 outline-none shadow-sm appearance-none"
                               required
                             >
                               <option value="" disabled hidden>Select Business Type</option>
