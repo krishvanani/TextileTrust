@@ -1277,7 +1277,7 @@ const Subscription = () => {
                 </div>
                 <p className="text-brand-100/70 text-sm mb-6">For active traders and manufacturers.</p>
                 <div className="mb-8 flex items-baseline">
-                  <span className="text-5xl font-bold text-white">₹1000</span>
+                  <span className="text-5xl font-bold text-white">₹199</span>
                   <span className="text-brand-100/50 ml-2"> / month</span>
                 </div>
                 <ul className="space-y-4 mb-8">
