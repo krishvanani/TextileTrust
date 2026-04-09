@@ -86,7 +86,7 @@ const Payment = () => {
             <CheckCircle className="w-10 h-10 text-indigo-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-          <p className="text-gray-500 mb-1">$1,000.00 has been charged to your card.</p>
+          <p className="text-gray-500 mb-1">₹199.00 has been charged to your card.</p>
           <p className="text-sm text-gray-400">Redirecting you to your company profile...</p>
           <div className="mt-6">
             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
@@ -195,7 +195,7 @@ const Payment = () => {
                       Processing Payment...
                     </span>
                   ) : (
-                    'Pay $1,000.00'
+                    'Pay ₹199.00'
                   )}
                 </Button>
 
@@ -248,15 +248,15 @@ const Payment = () => {
                 <div className="border-t border-gray-100 pt-4 space-y-2">
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>Subtotal</span>
-                    <span>$1,000.00</span>
+                    <span>₹199.00</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-500">
                     <span>Tax</span>
-                    <span>$0.00</span>
+                    <span>₹0.00</span>
                   </div>
                   <div className="flex justify-between font-bold text-gray-900 text-lg pt-2 border-t border-gray-200">
                     <span>Total</span>
-                    <span>$1,000.00</span>
+                    <span>₹199.00</span>
                   </div>
                 </div>
 
