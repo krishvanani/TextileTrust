@@ -12,14 +12,14 @@ const Button = ({
   disabled = false,
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-2xl font-medium text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95";
+  const baseStyles = "inline-flex items-center justify-center rounded-xl font-semibold text-sm transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97]";
   
   const variants = {
-    primary: "bg-gradient-to-r from-future-carbon to-future-midnight text-white hover:opacity-90 hover:shadow-xl hover:shadow-brand-500/20 hover:scale-[1.02] focus:ring-future-midnight border border-transparent shadow-lg shadow-brand-500/10 btn-shine",
-    secondary: "bg-white text-future-carbon border border-future-mist hover:bg-future-snow hover:border-future-smoke hover:shadow-md focus:ring-future-mist shadow-sm",
-    ghost: "text-future-graphite hover:text-future-midnight hover:bg-future-silver/50 bg-transparent",
-    outline: "border border-future-mist text-future-carbon hover:bg-future-silver/30 hover:border-future-smoke",
-    glass: "glass text-future-midnight hover:bg-white/80 hover:shadow-glow border-white/50",
+    primary: "bg-gradient-to-r from-brand-600 to-brand-700 text-white hover:from-brand-700 hover:to-brand-800 hover:shadow-brand-glow focus:ring-brand-500 border border-brand-700/50 shadow-lg shadow-brand-500/15 btn-shine",
+    secondary: "bg-white text-slate-900 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:shadow-md focus:ring-slate-300 shadow-sm",
+    ghost: "text-slate-700 hover:text-slate-900 hover:bg-slate-100 bg-transparent",
+    outline: "border border-slate-300 text-slate-800 hover:bg-slate-50 hover:border-slate-400",
+    glass: "glass text-slate-900 hover:bg-white hover:shadow-card-hover border-slate-200/60",
   };
 
   const sizes = "px-6 py-3";

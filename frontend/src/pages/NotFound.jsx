@@ -18,7 +18,7 @@ const NotFound = () => {
           </div>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-3 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 tracking-tight">
           Page Not Found
         </h2>
         <p className="text-slate-500 text-sm sm:text-base mb-8 leading-relaxed max-w-sm mx-auto">
@@ -28,14 +28,14 @@ const NotFound = () => {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition-all min-h-[48px] btn-shine"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 transition-all duration-200 min-h-[48px] btn-shine"
           >
             <Home className="w-4 h-4" />
             Go Home
           </Link>
           <Link
             to="/search"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-semibold text-sm border border-slate-200 hover:border-slate-300 transition-all min-h-[48px]"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-800 rounded-xl font-semibold text-sm border border-slate-300 hover:border-slate-400 transition-all duration-200 min-h-[48px]"
           >
             <Search className="w-4 h-4" />
             Search Companies
