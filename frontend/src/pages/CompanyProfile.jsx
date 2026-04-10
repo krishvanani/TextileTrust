@@ -24,8 +24,10 @@ const CompanyProfile = () => {
   const location = useLocation();
   useScrollReveal();
 
-  /* REMOVING FIXED MOCK CONST - USING STATE */
-  const [company, setCompany] = useState(MOCK_DATA[id] || MOCK_DATA[1]);
+  /* For real company IDs, start empty to avoid flashing mock data */
+  const [company, setCompany] = useState(
+    id.length >= 24 ? {} : (MOCK_DATA[id] || MOCK_DATA[1])
+  );
   
   // STRICT GATING: Use exactly === true
   const isSubscribed = user?.isSubscribed === true; 

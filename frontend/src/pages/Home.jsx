@@ -125,7 +125,7 @@ const LandingPage = () => {
           </p>
           
           {/* Conditional Search Bar */}
-          <div ref={searchContainerRef} className="max-w-2xl mx-auto mb-10 sm:mb-16 md:mb-20 min-h-[50px] sm:min-h-[60px] px-2 sm:px-0"> 
+          <div ref={searchContainerRef} className="max-w-2xl mx-auto mb-10 sm:mb-16 md:mb-20 min-h-[50px] sm:min-h-[60px] px-2 sm:px-0 relative z-50"> 
             {!showNavbarSearch && (
                 <div className="animate-in fade-in zoom-in duration-500">
                     <SearchBar placeholder="Search by Name or GSTN..." />
