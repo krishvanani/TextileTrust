@@ -7,6 +7,7 @@ import Cropper from 'react-easy-crop';
 import { useAuth } from '../context/AuthContext';
 import useScrollReveal from '../hooks/useScrollReveal';
 import api from '../services/api';
+import { getImageUrl } from '../utils/imageUrl';
 
 // Utility: create cropped image from canvas
 const createCroppedImage = async (imageSrc, croppedAreaPixels, rotation = 0) => {
@@ -400,7 +401,7 @@ const Profile = () => {
                            >
                                {profile.profilePhoto ? (
                                  <img 
-                                   src={`${API_BASE}${profile.profilePhoto}`} 
+                                   src={getImageUrl(profile.profilePhoto, API_BASE)} 
                                    alt="Profile" 
                                    className="w-full h-full rounded-full object-cover"
                                  />
@@ -945,7 +946,7 @@ const Profile = () => {
              <div className="w-56 h-56 sm:w-72 sm:h-72 rounded-full overflow-hidden ring-4 ring-white/10 shadow-2xl">
                {profile.profilePhoto ? (
                  <img 
-                   src={`${API_BASE}${profile.profilePhoto}`} 
+                   src={getImageUrl(profile.profilePhoto, API_BASE)} 
                    alt="Profile" 
                    className="w-full h-full object-cover"
                  />

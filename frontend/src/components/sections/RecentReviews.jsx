@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Star, X, ThumbsUp, ThumbsDown, Calendar, ArrowRight, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { getImageUrl } from '../../utils/imageUrl';
 
 // API Base for images
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
@@ -188,7 +189,7 @@ const RecentReviews = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex-shrink-0 ring-2 ring-white shadow-sm">
                       {review.user.photo ? (
-                        <img src={`${API_BASE}${review.user.photo}`} alt={review.user.name} className="w-full h-full object-cover" />
+                        <img src={getImageUrl(review.user.photo, API_BASE)} alt={review.user.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-indigo-600 font-bold text-sm">
                           {review.user.name.substring(0, 2).toUpperCase()}
@@ -218,7 +219,7 @@ const RecentReviews = () => {
                   >
                     <div className="w-8 h-8 rounded-lg bg-slate-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">
                       {review.company.logo ? (
-                        <img src={`${API_BASE}${review.company.logo}`} alt="" className="w-full h-full object-cover" />
+                        <img src={getImageUrl(review.company.logo, API_BASE)} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-[10px] font-bold text-slate-400">{review.company.name.substring(0, 2)}</span>
                       )}
@@ -278,7 +279,7 @@ const RecentReviews = () => {
               <div className="flex items-center gap-4 mb-6 pr-10">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100 flex-shrink-0 ring-2 ring-white shadow-md">
                   {selectedReview.user.photo ? (
-                    <img src={`${API_BASE}${selectedReview.user.photo}`} alt={selectedReview.user.name} className="w-full h-full object-cover" />
+                    <img src={getImageUrl(selectedReview.user.photo, API_BASE)} alt={selectedReview.user.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-indigo-600 font-bold text-base">
                       {selectedReview.user.name.substring(0, 2).toUpperCase()}
@@ -336,7 +337,7 @@ const RecentReviews = () => {
                 >
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-200">
                     {selectedReview.company.logo ? (
-                      <img src={`${API_BASE}${selectedReview.company.logo}`} alt="" className="w-full h-full object-cover rounded-lg" />
+                      <img src={getImageUrl(selectedReview.company.logo, API_BASE)} alt="" className="w-full h-full object-cover rounded-lg" />
                     ) : (
                       <span className="text-xs font-bold text-slate-400">{selectedReview.company.name.substring(0, 2)}</span>
                     )}

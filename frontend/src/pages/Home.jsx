@@ -13,6 +13,7 @@ import LogoLoop from '../components/ui/LogoLoop';
 import StatsCounter from '../components/ui/StatsCounter';
 import RecentReviews from '../components/sections/RecentReviews';
 import TypewriterText from '../components/ui/TypewriterText';
+import { getImageUrl } from '../utils/imageUrl';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -155,7 +156,7 @@ const LandingPage = () => {
                              <div className="flex items-center gap-2 mb-1">
                                 <div className="w-9 h-9 min-w-[36px] rounded-lg bg-white/10 flex items-center justify-center text-white/70 font-bold text-xs uppercase overflow-hidden border border-white/20">
                                    {company.submittedBy?.profilePhoto ? (
-                                     <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                     <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                                    ) : (
                                      company.name?.substring(0, 2)
                                    )}
@@ -203,7 +204,7 @@ const LandingPage = () => {
                          <div className="flex items-center gap-2.5 mb-2">
                             <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-lg bg-white/10 flex items-center justify-center text-white/70 font-bold text-sm uppercase overflow-hidden border border-white/20 flex-shrink-0">
                                {company.submittedBy?.profilePhoto ? (
-                                 <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                 <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                                ) : (
                                  company.name?.substring(0, 2)
                                )}

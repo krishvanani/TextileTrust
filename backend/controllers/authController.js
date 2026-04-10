@@ -7,31 +7,12 @@ const fs = require('fs');
 const User = require('../models/User');
 const Company = require('../models/Company');
 const { verifyFirebaseToken } = require('../config/firebase');
+const { cloudinary, profilePhotoStorage } = require('../config/cloudinary');
 
-// Multer config for profile photo uploads
-const uploadsDir = path.join(__dirname, '..', 'uploads', 'profiles');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const uniqueName = `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
-
+// Multer config for profile photo uploads (Cloudinary)
 const upload = multer({
-  storage,
+  storage: profilePhotoStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    if (ext && mime) return cb(null, true);
-    cb(new Error('Only image files are allowed'));
-  }
 });
 
 // @desc    Register new user
@@ -275,22 +256,27 @@ const uploadProfilePhoto = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  // Delete old photo if exists
-  if (user.profilePhoto) {
-    const oldPath = path.join(__dirname, '..', user.profilePhoto);
-    if (fs.existsSync(oldPath)) {
-      fs.unlinkSync(oldPath);
+  // Delete old photo from Cloudinary if exists
+  if (user.profilePhoto && user.profilePhoto.includes('cloudinary')) {
+    try {
+      // Extract public_id from Cloudinary URL
+      const urlParts = user.profilePhoto.split('/');
+      const folderAndFile = urlParts.slice(urlParts.indexOf('textiletrust')).join('/');
+      const publicId = folderAndFile.replace(/\.[^/.]+$/, ''); // Remove extension
+      await cloudinary.uploader.destroy(publicId);
+    } catch (err) {
+      console.warn('Failed to delete old Cloudinary photo:', err.message);
     }
   }
 
-  // Save new photo path
-  const photoPath = `/uploads/profiles/${req.file.filename}`;
-  user.profilePhoto = photoPath;
+  // Save new Cloudinary URL (req.file.path is the full Cloudinary URL)
+  const photoUrl = req.file.path;
+  user.profilePhoto = photoUrl;
   await user.save();
 
   res.json({
     success: true,
-    profilePhoto: photoPath
+    profilePhoto: photoUrl
   });
 });
 

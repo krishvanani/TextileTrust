@@ -18,6 +18,7 @@ import Logo from "../ui/Logo";
 import SearchBar from "../ui/SearchBar";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
+import { getImageUrl } from "../../utils/imageUrl";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -234,7 +235,7 @@ const Navbar = () => {
                           className={`flex items-center font-medium text-sm px-3 py-1.5 rounded-full border shadow-inner focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkTheme ? "bg-white/10 border-white/10 text-white focus:ring-white/30 focus:ring-offset-future-midnight" : "bg-white border-brand-100 text-future-carbon shadow-sm focus:ring-brand-200 focus:ring-offset-white"}`}
                         >
                           {user.profilePhoto ? (
-                            <img src={`${API_BASE}${user.profilePhoto}`} alt="" className="w-6 h-6 rounded-full object-cover mr-2" />
+                            <img src={getImageUrl(user.profilePhoto, API_BASE)} alt="" className="w-6 h-6 rounded-full object-cover mr-2" />
                           ) : (
                             <User className={`h-4 w-4 mr-2 ${isDarkTheme ? "text-brand-400" : "text-brand-600"}`} />
                           )}
@@ -409,7 +410,7 @@ const Navbar = () => {
                    <div className="space-y-4">
                        <div className="flex items-center space-x-3 px-2">
                            {user.profilePhoto ? (
-                             <img src={`${API_BASE}${user.profilePhoto}`} alt="" className="w-9 h-9 rounded-full object-cover border border-brand-500/30" />
+                             <img src={getImageUrl(user.profilePhoto, API_BASE)} alt="" className="w-9 h-9 rounded-full object-cover border border-brand-500/30" />
                            ) : (
                              <div className="w-9 h-9 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-300 font-bold border border-brand-500/30 text-sm">
                                {(user.companyName || user.email || 'U').charAt(0).toUpperCase()}

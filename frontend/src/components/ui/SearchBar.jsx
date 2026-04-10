@@ -3,6 +3,7 @@ import { Search, ArrowRight, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useSearch } from '../../context/SearchContext';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -145,7 +146,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
                                <div className="flex items-center gap-2.5 sm:gap-3 overflow-hidden">
                                    <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-xl bg-gradient-to-br from-brand-100/60 to-brand-50 flex items-center justify-center text-brand-600 font-bold text-xs sm:text-sm uppercase overflow-hidden border border-brand-100/40 shadow-sm group-hover:shadow-brand-200/50 group-hover:scale-105 transition-all duration-200">
                                       {company.submittedBy?.profilePhoto ? (
-                                        <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                        <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                                       ) : (
                                         company.name.substring(0, 2)
                                       )}
@@ -235,7 +236,7 @@ const SearchBar = ({ variant = 'default', placeholder = 'Search companies, GST, 
                {/* Logo / Profile Photo */}
                <div className="w-10 h-10 sm:w-11 sm:h-11 min-w-[40px] sm:min-w-[44px] rounded-xl bg-gradient-to-br from-brand-100/60 to-brand-50 flex items-center justify-center text-brand-600 font-bold text-xs sm:text-sm uppercase overflow-hidden border border-brand-100/40 shadow-sm group-hover:shadow-brand-200/50 group-hover:scale-105 transition-all duration-200">
                   {company.submittedBy?.profilePhoto ? (
-                    <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                    <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                   ) : (
                     company.name.substring(0, 2)
                   )}

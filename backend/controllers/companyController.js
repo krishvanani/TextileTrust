@@ -301,33 +301,12 @@ const checkCompanyIdentity = asyncHandler(async (req, res) => {
   res.json({ exists: false });
 });
 
-// Configure Multer for Business Cards
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, '..', 'uploads', 'business-cards'); // Use absolute path
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'bc-' + req.user.id + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure Multer for Business Cards (Cloudinary)
+const { businessCardStorage } = require('../config/cloudinary');
 
 const uploadMiddleware = multer({ 
-    storage: storage,
+    storage: businessCardStorage,
     limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|webp/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Only images are allowed'));
-    }
 });
 
 // @desc    Upload Business Card
@@ -359,13 +338,13 @@ const uploadBusinessCard = asyncHandler(async (req, res) => {
         throw new Error('Company must be approved to upload business cards.');
     }
 
-    // 5. Update Company
+    // 5. Update Company (Cloudinary URLs)
     const updates = {};
     if (req.files.front) {
-        updates['businessCard.frontImageUrl'] = `/uploads/business-cards/${req.files.front[0].filename}`;
+        updates['businessCard.frontImageUrl'] = req.files.front[0].path;
     }
     if (req.files.back) {
-        updates['businessCard.backImageUrl'] = `/uploads/business-cards/${req.files.back[0].filename}`;
+        updates['businessCard.backImageUrl'] = req.files.back[0].path;
     }
     updates['businessCard.uploadedAt'] = Date.now();
 

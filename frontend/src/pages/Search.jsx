@@ -27,6 +27,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { toast } from "react-hot-toast";
 import { useSearch } from "../context/SearchContext";
+import { getImageUrl } from "../utils/imageUrl";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -902,7 +903,7 @@ const Search = () => {
                           <div className="flex items-center flex-wrap gap-2 mb-2">
                             <div className="w-14 h-14 min-w-[56px] rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-base uppercase overflow-hidden border border-gray-200 shrink-0">
                               {company.submittedBy?.profilePhoto ? (
-                                <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                                <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 company.name?.substring(0, 2)
                               )}

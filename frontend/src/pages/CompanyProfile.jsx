@@ -6,6 +6,7 @@ import GlassCard from '../components/ui/GlassCard';
 import useScrollReveal from '../hooks/useScrollReveal';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getImageUrl } from '../utils/imageUrl';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -427,7 +428,7 @@ const CompanyProfile = () => {
           {/* Avatar / Initials */}
           <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold mr-2 sm:mr-3 border overflow-hidden ${isMyReview ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-gray-200'}`}>
             {displayPhoto ? (
-              <img src={`${API_BASE}${displayPhoto}`} alt="" className="w-full h-full object-cover" />
+              <img src={getImageUrl(displayPhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
             ) : (
               displayInitials
             )}
@@ -522,7 +523,7 @@ const CompanyProfile = () => {
                 onClick={() => company?.submittedBy?.profilePhoto && setShowImageModal(true)}
               >
                 {company?.submittedBy?.profilePhoto ? (
-                  <img src={`${API_BASE}${company.submittedBy.profilePhoto}`} alt="" className="w-full h-full object-cover" />
+                  <img src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} alt="" className="w-full h-full object-cover" />
                 ) : (
                   displayCompany.name?.substring(0, 2)
                 )}
@@ -1387,7 +1388,7 @@ const CompanyProfile = () => {
                 <X className="w-8 h-8" />
              </button>
              <img 
-               src={`${API_BASE}${company.submittedBy.profilePhoto}`} 
+               src={getImageUrl(company.submittedBy.profilePhoto, API_BASE)} 
                alt={company.companyName} 
                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                onClick={(e) => e.stopPropagation()}
@@ -1414,7 +1415,7 @@ const CompanyProfile = () => {
                 <div className="flex flex-col items-center gap-4 w-full md:w-1/2 max-w-md animate-in slide-in-from-bottom-4 duration-500">
                      <div className="w-full bg-white p-2 rounded-xl shadow-2xl overflow-hidden aspect-[1.6] flex items-center justify-center">
                         {company?.businessCard?.frontImageUrl ? (
-                            <img src={`${API_BASE}${company.businessCard.frontImageUrl}`} alt="Front" className="w-full h-full object-contain rounded-lg" />
+                            <img src={getImageUrl(company.businessCard.frontImageUrl, API_BASE)} alt="Front" className="w-full h-full object-contain rounded-lg" />
                         ) : (
                             <div className="text-gray-400 text-sm font-medium">No Front Side</div>
                         )}
@@ -1426,7 +1427,7 @@ const CompanyProfile = () => {
                 <div className="flex flex-col items-center gap-4 w-full md:w-1/2 max-w-md animate-in slide-in-from-bottom-4 duration-700 delay-100">
                      <div className="w-full bg-white p-2 rounded-xl shadow-2xl overflow-hidden aspect-[1.6] flex items-center justify-center">
                         {company?.businessCard?.backImageUrl ? (
-                            <img src={`${API_BASE}${company.businessCard.backImageUrl}`} alt="Back" className="w-full h-full object-contain rounded-lg" />
+                            <img src={getImageUrl(company.businessCard.backImageUrl, API_BASE)} alt="Back" className="w-full h-full object-contain rounded-lg" />
                         ) : (
                             <div className="text-gray-400 text-sm font-medium">No Back Side</div>
                         )}
