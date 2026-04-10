@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle, EyeOff } from 'lucide-react';
+import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle, EyeOff, Share2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -100,6 +100,7 @@ const CompanyProfile = () => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [showBCModal, setShowBCModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
 
   // Preview data for non-subscribers
   const [previewData, setPreviewData] = useState(null);
@@ -601,7 +602,7 @@ const CompanyProfile = () => {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex gap-2 sm:gap-3 mt-1">
+                <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 items-center">
                   {isOwner ? (
                     <>
                     <div className="flex items-center px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-500 font-medium text-sm">
@@ -654,6 +655,52 @@ const CompanyProfile = () => {
                     )}
                     </>
                   )}
+                  {/* Share Button */}
+                  <button
+                    onClick={async () => {
+                      const shareUrl = window.location.href;
+                      const shareData = {
+                        title: `${displayCompany.name} — TexoTrust`,
+                        text: `Check out ${displayCompany.name} on TexoTrust — verified textile business profiles, ratings & reviews.`,
+                        url: shareUrl,
+                      };
+                      if (navigator.share) {
+                        try {
+                          await navigator.share(shareData);
+                        } catch (err) {
+                          if (err.name !== 'AbortError') console.error('Share failed:', err);
+                        }
+                      } else {
+                        try {
+                          await navigator.clipboard.writeText(shareUrl);
+                          setShowShareToast(true);
+                          setTimeout(() => setShowShareToast(false), 2000);
+                        } catch {
+                          // Fallback for older browsers
+                          const textarea = document.createElement('textarea');
+                          textarea.value = shareUrl;
+                          document.body.appendChild(textarea);
+                          textarea.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(textarea);
+                          setShowShareToast(true);
+                          setTimeout(() => setShowShareToast(false), 2000);
+                        }
+                      }
+                    }}
+                    className="relative flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm gap-1.5"
+                    title="Share this profile"
+                  >
+                    <Share2 className="w-4 h-4 text-gray-500" />
+                    Share
+                    {/* Copied toast */}
+                    {showShareToast && (
+                      <span className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg animate-fade-in"
+                      >
+                        <Check className="w-3 h-3 inline mr-1" />Link copied!
+                      </span>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
