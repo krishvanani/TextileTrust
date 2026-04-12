@@ -321,7 +321,7 @@ const Signup = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.email.trim() || !formData.contactNumber.trim() || !formData.password) {
+    if (!formData.email.trim() || !formData.contactNumber.trim() || !formData.password || !formData.confirmPassword) {
       setError("All fields are required");
       return;
     }
@@ -332,13 +332,19 @@ const Signup = () => {
       return;
     }
 
+    // Check GST verification
+    if (!gstVerified || !gstData) {
+      setError("Please verify your GST number before creating an account.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
       return;
     }
     
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -601,7 +607,6 @@ const Signup = () => {
               <div className="flex items-center gap-2 mb-1">
                 <Building2 className="h-4 w-4 text-future-steel" />
                 <span className="text-xs sm:text-sm font-semibold text-future-carbon">GST Verification</span>
-                <span className="text-[10px] text-future-steel">(Optional)</span>
               </div>
 
               {/* GST Input + Verify Button */}
@@ -768,9 +773,9 @@ const Signup = () => {
             <div className="pt-1 sm:pt-2">
               <button
                 type="submit"
-                disabled={isLoading || otpStep !== 'verified'}
+                disabled={isLoading || otpStep !== 'verified' || !gstVerified}
                 className={`w-full flex items-center justify-center py-3 sm:py-4 px-4 rounded-xl font-bold text-base sm:text-lg shadow-lg transform transition-all duration-300 min-h-[48px] touch-target
-                  ${otpStep === 'verified' 
+                  ${otpStep === 'verified' && gstVerified 
                     ? 'bg-future-graphite hover:bg-future-carbon text-white shadow-future-graphite/20 hover:shadow-future-graphite/30 hover:-translate-y-0.5' 
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }
@@ -785,9 +790,13 @@ const Signup = () => {
                   </>
                 )}
               </button>
-              {otpStep !== 'verified' && (
+              {(otpStep !== 'verified' || !gstVerified) && (
                 <p className="text-center text-[10px] text-future-steel mt-2">
-                  Verify your mobile number to enable account creation
+                  {otpStep !== 'verified' && !gstVerified
+                    ? 'Verify your mobile number and GST to enable account creation'
+                    : otpStep !== 'verified'
+                    ? 'Verify your mobile number to enable account creation'
+                    : 'Verify your GST number to enable account creation'}
                 </p>
               )}
             </div>
