@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle, EyeOff, Share2 } from 'lucide-react';
+import { ShieldCheck, MapPin, Star, Lock, ThumbsUp, X, Check, ChevronRight, Edit, User, Phone, ExternalLink, HelpCircle, CreditCard, Upload, XCircle, EyeOff, Share2, Flag } from 'lucide-react';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
 import useScrollReveal from '../hooks/useScrollReveal';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getImageUrl } from '../utils/imageUrl';
+import toast from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5003';
 
@@ -146,7 +147,10 @@ const CompanyProfile = () => {
             wouldDealAgain: r.wouldDealAgain,
             isAnonymous: r.isAnonymous,
             date: calculateRelativeTime(r.updatedAt || r.createdAt),
-            text: r.comment
+            text: r.comment,
+            helpfulCount: r.helpfulCount,
+            helpfulBy: r.helpfulBy,
+            reportedBy: r.reportedBy
           }));
           
           // Sort: current user's review first, then rest by date
@@ -306,7 +310,10 @@ const CompanyProfile = () => {
              wouldDealAgain: r.wouldDealAgain,
              isAnonymous: r.isAnonymous,
              date: calculateRelativeTime(r.updatedAt || r.createdAt),
-             text: r.comment
+             text: r.comment,
+             helpfulCount: r.helpfulCount,
+             helpfulBy: r.helpfulBy,
+             reportedBy: r.reportedBy
           }));
           
           // Sort: current user's review first
@@ -419,6 +426,67 @@ const CompanyProfile = () => {
     }
   };
 
+  const handleHelpful = async (reviewId) => {
+    if (!user) {
+      toast.error('Please log in to interact with reviews.');
+      navigate('/login', { state: { returnUrl: location.pathname } });
+      return;
+    }
+    
+    // Optimistic UI update
+    setReviews(prev => prev.map(r => {
+      if (r.id === reviewId) {
+        const isHelpful = r.helpfulBy?.includes(user._id);
+        const newHelpfulBy = isHelpful 
+          ? (r.helpfulBy || []).filter(uId => uId !== user._id)
+          : [...(r.helpfulBy || []), user._id];
+        const newCount = newHelpfulBy.length;
+        return { ...r, helpfulBy: newHelpfulBy, helpfulCount: newCount };
+      }
+      return r;
+    }));
+
+    try {
+      if (id.length >= 24) {
+        await api.put(`/reviews/${reviewId}/helpful`);
+      }
+    } catch (err) {
+      toast.error('Failed to update helpful status');
+      // Revert would be normally here
+    }
+  };
+
+  const handleReport = async (reviewId, reviewerId) => {
+    if (!user) {
+      toast.error('Please log in to report reviews.');
+      navigate('/login', { state: { returnUrl: location.pathname } });
+      return;
+    }
+
+    if (user._id === reviewerId) {
+      toast.error('You cannot report your own review.');
+      return;
+    }
+
+    try {
+      if (id.length >= 24) {
+        await api.post(`/reviews/${reviewId}/report`);
+        
+        // Optimistic UI update
+        setReviews(prev => prev.map(r => {
+          if (r.id === reviewId) {
+            return { ...r, reportedBy: [...(r.reportedBy || []), user._id] };
+          }
+          return r;
+        }));
+        
+        toast.success('Review reported successfully. Our team will review it.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to report review');
+    }
+  };
+
   const renderReviewCard = (review, isMyReview, index = 0) => {
     const displayName = review.isAnonymous ? 'Anonymous User' : (review.reviewerCompany || review.reviewerName);
     const displayPhoto = review.isAnonymous ? null : review.reviewerPhoto;
@@ -504,9 +572,38 @@ const CompanyProfile = () => {
           )}
         </div>
       </div>
-      <p className="text-gray-600 text-sm leading-relaxed">
+      <p className="text-gray-600 text-sm leading-relaxed mb-4">
         "{review.text}"
       </p>
+
+      {/* Interactions Row: Helpful / Report */}
+      <div className="flex items-center gap-4 mt-2 border-t border-gray-50 pt-3">
+        <button
+          onClick={() => handleHelpful(review.id)}
+          className={`flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors ${
+            user && (review.helpfulBy || []).includes(user._id)
+              ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+          }`}
+        >
+          <ThumbsUp className={`w-3.5 h-3.5 ${user && (review.helpfulBy || []).includes(user._id) ? 'fill-current' : ''}`} />
+          {review.helpfulCount || 0} Helpful
+        </button>
+
+        <button
+          onClick={() => handleReport(review.id, review.reviewerId)}
+          disabled={user && (review.reportedBy || []).includes(user._id)}
+          className={`flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors ml-auto ${
+            user && (review.reportedBy || []).includes(user._id)
+              ? 'text-red-400 cursor-not-allowed opacity-70'
+              : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+          }`}
+          title={user && (review.reportedBy || []).includes(user._id) ? 'Already reported' : 'Report this review'}
+        >
+          <Flag className={`w-3.5 h-3.5 ${user && (review.reportedBy || []).includes(user._id) ? 'fill-current' : ''}`} />
+          {user && (review.reportedBy || []).includes(user._id) ? 'Reported' : 'Report'}
+        </button>
+      </div>
     </div>
   );
   };
@@ -867,23 +964,6 @@ const CompanyProfile = () => {
               <div className={`transition-all duration-500 min-h-[450px] ${!isSubscribed ? 'select-none pointer-events-none' : ''}`}>
                 <div className="space-y-6 sm:space-y-8">
                 
-                  {/* TRUST LABEL BANNER - only show if has reviews */}
-                  {isSubscribed && totalReviews > 0 && (
-                  <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 ${trustBadge.color.replace('text-', 'bg-opacity-10 ')}`}>
-                     <div className={`p-2 rounded-lg ${trustBadge.color} bg-opacity-20`}>
-                        <trustBadge.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                     </div>
-                     <div>
-                        <h4 className="font-bold text-base">{trustBadge.label}</h4>
-                        <p className="text-xs sm:text-sm opacity-80 mt-1 leading-relaxed">
-                          {displayCompany.trustStatus === 'TRUSTED' ? 'This company meets our highest standards for reliability and feedback.' :
-                           displayCompany.trustStatus === 'CAUTION' ? 'Mixed feedback detected. We recommend proceeding with standard due diligence.' :
-                           displayCompany.trustStatus === 'LOW_TRUST' ? 'Multiple negative indicators found. High risk.' :
-                           'Not enough data to calculate a trust score yet.'}
-                        </p>
-                     </div>
-                  </div>
-                  )}
                   {/* Clean Stats Row - REMOVED (Moved to Header/Card) */}
 
                   {/* Reviews List */}

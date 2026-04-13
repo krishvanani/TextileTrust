@@ -42,6 +42,14 @@ const reviewSchema = mongoose.Schema({
   reportedBy: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  }],
+  helpfulCount: {
+    type: Number,
+    default: 0
+  },
+  helpfulBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }]
 }, {
   timestamps: true,

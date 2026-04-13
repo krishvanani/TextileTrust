@@ -587,6 +587,45 @@ const reportReview = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Review reported successfully' });
 });
 
+// @desc    Toggle helpful stat on a review
+// @route   PUT /api/reviews/:reviewId/helpful
+// @access  Private
+const toggleHelpfulReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    res.status(404);
+    throw new Error('Review not found');
+  }
+
+  // Handle arrays not existing on old reviews
+  if (!review.helpfulBy) review.helpfulBy = [];
+  if (!review.helpfulCount) review.helpfulCount = 0;
+
+  const userIndex = review.helpfulBy.indexOf(req.user.id);
+  let isHelpful = false;
+
+  if (userIndex !== -1) {
+    // User already marked helpful, unmark
+    review.helpfulBy.splice(userIndex, 1);
+    review.helpfulCount = Math.max(0, review.helpfulCount - 1);
+  } else {
+    // User marking helpful
+    review.helpfulBy.push(req.user.id);
+    review.helpfulCount += 1;
+    isHelpful = true;
+  }
+
+  await review.save();
+
+  res.status(200).json({ 
+    success: true, 
+    helpfulCount: review.helpfulCount,
+    isHelpful
+  });
+});
+
 module.exports = {
   getReviews,
   getUserReviews,
@@ -594,6 +633,7 @@ module.exports = {
   updateReview,
   deleteReview,
   reportReview,
+  toggleHelpfulReview,
   getFeaturedReviews,
   getRecentReviews,
   addReviewByGst,

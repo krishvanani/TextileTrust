@@ -68,6 +68,7 @@ app.use('/api/subscription', require('./routes/subscriptionRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/gst', require('./routes/gstRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => {
   res.send('TexoTrust API is running...');

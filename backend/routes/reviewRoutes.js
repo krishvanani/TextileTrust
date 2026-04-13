@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getReviews, getUserReviews, addReview, updateReview, deleteReview, reportReview, getFeaturedReviews, getRecentReviews, addReviewByGst, getReviewPreview, getMyReviewForCompany } = require('../controllers/reviewController');
+const { getReviews, getUserReviews, addReview, updateReview, deleteReview, reportReview, toggleHelpfulReview, getFeaturedReviews, getRecentReviews, addReviewByGst, getReviewPreview, getMyReviewForCompany } = require('../controllers/reviewController');
 const { protect } = require('../middleware/authMiddleware');
 const checkReviewLimit = require('../middleware/checkReviewLimit');
 
@@ -25,6 +25,7 @@ router.route('/edit/:reviewId')
 
 router.delete('/:reviewId', protect, deleteReview);
 router.post('/:reviewId/report', protect, reportReview);
+router.put('/:reviewId/helpful', protect, toggleHelpfulReview);
 
 module.exports = router;
 
