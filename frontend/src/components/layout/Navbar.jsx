@@ -212,7 +212,7 @@ const Navbar = () => {
                   {user ? (
                     <div className="flex items-center space-x-4">
                       {/* Company Action */}
-                      {user.isSubscribed === true && (
+                      {user.isSubscribed === true && user.role !== 'ADMIN' && (
                         (() => {
                           const companyPath = user.registeredCompanyId ? `/company/${user.registeredCompanyId}` : '/register-company';
                           const isCompanyActive = location.pathname === companyPath;
@@ -387,7 +387,7 @@ const Navbar = () => {
                 })}
 
                 {/* Company Link (if subscribed) */}
-                {user?.isSubscribed && (
+                {user?.isSubscribed && user?.role !== 'ADMIN' && (
                   <Link
                     to={user.registeredCompanyId ? `/company/${user.registeredCompanyId}` : '/register-company'}
                     onClick={() => setIsOpen(false)}

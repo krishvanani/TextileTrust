@@ -193,34 +193,36 @@ const getReportedReviews = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/reviews/:id/hide
 // @access  Private (Admin)
 const hideReview = asyncHandler(async (req, res) => {
-  const review = await Review.findById(req.params.id);
+  const review = await Review.findByIdAndUpdate(
+    req.params.id,
+    { isHidden: true },
+    { new: true }
+  );
   if (!review) {
     res.status(404);
     throw new Error('Review not found');
   }
 
-  review.isHidden = true;
-  await review.save();
-
   console.log(`[ADMIN] Review ${review._id} hidden by admin ${req.user.id}`);
-  res.json({ success: true, message: 'Review hidden successfully.' });
+  res.json({ success: true, message: 'Review hidden successfully.', review });
 });
 
 // @desc    Unhide a review
 // @route   PUT /api/admin/reviews/:id/unhide
 // @access  Private (Admin)
 const unhideReview = asyncHandler(async (req, res) => {
-  const review = await Review.findById(req.params.id);
+  const review = await Review.findByIdAndUpdate(
+    req.params.id,
+    { isHidden: false },
+    { new: true }
+  );
   if (!review) {
     res.status(404);
     throw new Error('Review not found');
   }
 
-  review.isHidden = false;
-  await review.save();
-
   console.log(`[ADMIN] Review ${review._id} unhidden by admin ${req.user.id}`);
-  res.json({ success: true, message: 'Review unhidden successfully.' });
+  res.json({ success: true, message: 'Review unhidden successfully.', review });
 });
 
 // @desc    Delete a review (admin override)
