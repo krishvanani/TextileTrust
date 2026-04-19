@@ -1,0 +1,25 @@
+# Python virtualenv
+venv/
+.venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Large model artifacts — re-downloaded / regenerated on first run
+data/glove.6B*.txt
+data/*.bin
+data/*.zip
+data/hf_cache/
+
+# Computed outputs that are reproducible by running `python evaluate.py`
+data/best_model.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.log

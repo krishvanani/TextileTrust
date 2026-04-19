@@ -1,0 +1,39 @@
+[
+  {"comment": "Five year relationship, they have handled three of our export orders flawlessly. Strongly recommend for Dubai shipments.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "Second order had a small colour mismatch but they reworked it at their cost. Fair dealing.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Decent yarn quality for the price. Not premium but acceptable for retail blends.", "rating": 3, "label": 0, "category": "genuine_en"},
+  {"comment": "Team is responsive during daytime. After hours follow-up is slow, which delayed one shipment.", "rating": 3, "label": 0, "category": "genuine_en"},
+  {"comment": "Consistent supplier for our bandhani prints. Lead time has improved since last year.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Reliable for fabric procurement but invoicing needs improvement — three corrections on the last bill.", "rating": 3, "label": 0, "category": "genuine_en"},
+  {"comment": "Quality has been steady across four shipments this quarter.", "rating": 4, "label": 0, "category": "genuine_en"},
+
+  {"comment": "WOW AMAZING GREAT BEST EVER FIVE STARS", "rating": 5, "label": 1, "category": "fake_short"},
+  {"comment": "horrible horrible horrible horrible do not buy", "rating": 1, "label": 1, "category": "fake_repetition"},
+  {"comment": "perfect", "rating": 5, "label": 1, "category": "fake_trivial"},
+  {"comment": "Best in class world class top notch highly recommend must buy", "rating": 5, "label": 1, "category": "fake_templated"},
+  {"comment": "!!!!! ????? !!!!!", "rating": 5, "label": 1, "category": "fake_spam"},
+  {"comment": "worst ever never again waste of money total waste zero stars", "rating": 1, "label": 1, "category": "fake_templated"},
+  {"comment": "excellent excellent excellent", "rating": 5, "label": 1, "category": "fake_repetition"},
+
+  {"comment": "Complete fraud company, these assholes took advance and vanished.", "rating": 1, "label": 1, "category": "abusive_en"},
+  {"comment": "Bloody cheaters, the owner is a scumbag who lies on every call.", "rating": 1, "label": 1, "category": "abusive_en"},
+
+  {"comment": "Bhosdike paisa lekar maal hi nahi bheja, pura fraud kar diya.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Pure madarchod log hain, quality bhi ghatiya aur service bhi.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Saala chor company hai, invoice mein hera pheri karte hain.", "rating": 1, "label": 1, "category": "abusive_hi"},
+
+  {"comment": "Nakli maal aapyo, pura dhokhebaaz log chhe.", "rating": 1, "label": 1, "category": "abusive_gu"},
+  {"comment": "Gando malik chhe, gaali deto hai phone par.", "rating": 1, "label": 1, "category": "abusive_gu"},
+
+  {"comment": "Bhenchod kampani ahe, WhatsApp block kela.", "rating": 1, "label": 1, "category": "abusive_mr"},
+
+  {"comment": "Thevidiya payyan, advance vangittu ezhuthala.", "rating": 1, "label": 1, "category": "abusive_ta"},
+
+  {"comment": "Donga supplier, phone lift cheyyadu ippudu.", "rating": 1, "label": 1, "category": "abusive_te"},
+
+  {"comment": "Haramjada company, paisa mere.", "rating": 1, "label": 1, "category": "abusive_bn"},
+
+  {"comment": "The last three shipments had acceptable quality although packaging could be better.", "rating": 3, "label": 0, "category": "genuine_mixed"},
+  {"comment": "Good for small orders, not suitable if you need rapid turnaround on bulk.", "rating": 3, "label": 0, "category": "genuine_mixed"},
+  {"comment": "ok company ok", "rating": 3, "label": 1, "category": "fake_trivial"}
+]

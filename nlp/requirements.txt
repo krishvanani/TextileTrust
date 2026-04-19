@@ -1,0 +1,17 @@
+# TextileTrust NLP Service — Python dependencies
+# Install with: pip install -r requirements.txt
+
+flask
+flask-cors
+
+# HuggingFace Transformers (BERT)
+transformers
+torch
+
+# Scikit-learn for Naive Bayes / Logistic Regression classifiers
+scikit-learn
+scipy
+
+# Utilities
+numpy
+requests

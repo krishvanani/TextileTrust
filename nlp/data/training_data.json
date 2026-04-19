@@ -1,0 +1,70 @@
+[
+  {"comment": "We have dealt with this supplier for 3 years. Delivery is consistent and fabric quality matches the samples.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "Good supplier, communication could be better but overall satisfied with the last three orders.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "The yarn quality was below spec on the last lot. They offered a partial refund which was fair.", "rating": 2, "label": 0, "category": "genuine_en"},
+  {"comment": "Ordered 500 metres of cotton fabric, quality matched samples exactly. Will reorder next season.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "Payment terms are flexible and pricing is transparent. Recommended for bulk orders.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Delivery was delayed by two weeks with no communication. Otherwise the fabric was acceptable.", "rating": 2, "label": 0, "category": "genuine_en"},
+  {"comment": "Highly recommend for dyeing units sourcing greige cloth. Their lead times are reliable.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "The printing finish on the polyester blend was slightly uneven but they reprinted without extra charge.", "rating": 3, "label": 0, "category": "genuine_en"},
+  {"comment": "Sales team is responsive on WhatsApp, though invoice turnaround could be faster.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Been sourcing viscose yarn for my retail chain from them since 2022. No complaints.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "Samples were good but bulk delivery had shade variation. They replaced the affected rolls.", "rating": 3, "label": 0, "category": "genuine_en"},
+  {"comment": "Professional packaging, clean invoicing, GST compliant. Nothing to complain about.", "rating": 5, "label": 0, "category": "genuine_en"},
+  {"comment": "Quality is decent for the price point. Suitable for mid-range retail but not premium.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Had minor issues with packing on the first shipment but they sorted it quickly. Continuing with them.", "rating": 4, "label": 0, "category": "genuine_en"},
+  {"comment": "Two of the bales had moisture damage. Claim was processed within a week.", "rating": 3, "label": 0, "category": "genuine_en"},
+
+  {"comment": "BEST EVER!!! 5 STARS!!!", "rating": 5, "label": 1, "category": "fake_short"},
+  {"comment": "Worst company never deal again total waste", "rating": 1, "label": 1, "category": "fake_short"},
+  {"comment": "Good service good product good delivery good company good good good", "rating": 5, "label": 1, "category": "fake_repetition"},
+  {"comment": "ok", "rating": 5, "label": 1, "category": "fake_trivial"},
+  {"comment": "amazing amazing amazing amazing amazing supplier in the world", "rating": 5, "label": 1, "category": "fake_repetition"},
+  {"comment": "Bad bad bad bad bad bad company do not use do not buy do not deal", "rating": 1, "label": 1, "category": "fake_repetition"},
+  {"comment": "Nice", "rating": 5, "label": 1, "category": "fake_trivial"},
+  {"comment": "HIGHLY RECOMMEND MUST BUY TOP NOTCH WORLD CLASS NUMBER ONE", "rating": 5, "label": 1, "category": "fake_templated"},
+  {"comment": "Never again waste of money total waste one star zero stars", "rating": 1, "label": 1, "category": "fake_templated"},
+  {"comment": "!!!!!!!!!! excellent !!!!!!!!!! best !!!!!!!!!!", "rating": 5, "label": 1, "category": "fake_spam"},
+  {"comment": "Totally love it absolutely perfect would buy again forever", "rating": 5, "label": 1, "category": "fake_templated"},
+  {"comment": "aaaaaaaaaaaaa", "rating": 5, "label": 1, "category": "fake_charspam"},
+
+  {"comment": "These fucking idiots ruined my entire shipment. Total scammers.", "rating": 1, "label": 1, "category": "abusive_en"},
+  {"comment": "Absolute bullshit company. They are cheaters and liars.", "rating": 1, "label": 1, "category": "abusive_en"},
+  {"comment": "Don't trust these bastards, they will steal your money.", "rating": 1, "label": 1, "category": "abusive_en"},
+  {"comment": "Useless motherfuckers, blocked my number after taking advance.", "rating": 1, "label": 1, "category": "abusive_en"},
+  {"comment": "Scumbag company run by assholes, avoid at all costs.", "rating": 1, "label": 1, "category": "abusive_en"},
+
+  {"comment": "Ye log pure chutiya hain, paisa leke samaan nahi diya.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Madarchod company hai, order ke baad phone uthana band kar diya.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Bhenchod kya ghatiya quality di hai, full waste.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Ekdum harami log hain, dhokha dete hain naye customers ko.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Bhosdike delivery nahi aayi aur advance le liya poora.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Saala kameena owner hai, phone pe gaali deta hai.", "rating": 1, "label": 1, "category": "abusive_hi"},
+  {"comment": "Pakhandhi company, sab dhokha hai.", "rating": 1, "label": 1, "category": "abusive_hi"},
+
+  {"comment": "Aa company na malik to saav chutaro chhe, paisa pachho aapto nathi.", "rating": 1, "label": 1, "category": "abusive_gu"},
+  {"comment": "Nakli kapad aapyo, pura bhosdike log chhe.", "rating": 1, "label": 1, "category": "abusive_gu"},
+  {"comment": "Ek dam gando malik, besharmo quality no koi dhyan nathi.", "rating": 1, "label": 1, "category": "abusive_gu"},
+  {"comment": "Thagbaz log chhe, advance leine maal nathi aapto.", "rating": 1, "label": 1, "category": "abusive_gu"},
+  {"comment": "Gheli team chhe, koi response nathi apta WhatsApp par.", "rating": 1, "label": 1, "category": "abusive_gu"},
+
+  {"comment": "Ekdam chor kampani ahe, paise gele ani saman nahi aala.", "rating": 1, "label": 1, "category": "abusive_mr"},
+  {"comment": "Haramkhor malak aahe, WhatsApp block kela order nantar.", "rating": 1, "label": 1, "category": "abusive_mr"},
+  {"comment": "Dhongekhor supplier, samples chan pan bulk ekdum nakli.", "rating": 1, "label": 1, "category": "abusive_mr"},
+
+  {"comment": "Pura haramzaada owner hai, paise lekar bhag gaya.", "rating": 1, "label": 1, "category": "abusive_pa"},
+  {"comment": "Kamzarf kampani, bill mein hera pheri karte hain.", "rating": 1, "label": 1, "category": "abusive_ur"},
+
+  {"comment": "Romba mokkai company, pannatha vangatheenga.", "rating": 1, "label": 1, "category": "abusive_ta"},
+  {"comment": "Thevidiya makkal, advance vangittu maatikittanga.", "rating": 1, "label": 1, "category": "abusive_ta"},
+
+  {"comment": "Donga company, advance teesukoni saman ivvaledu.", "rating": 1, "label": 1, "category": "abusive_te"},
+  {"comment": "Erripuku owner, phone lift cheyyadu order tarvatha.", "rating": 1, "label": 1, "category": "abusive_te"},
+
+  {"comment": "Pura haramjada company, maal nakol diyeche.", "rating": 1, "label": 1, "category": "abusive_bn"},
+  {"comment": "Bokachoda supplier, samples ar bulk match korena.", "rating": 1, "label": 1, "category": "abusive_bn"},
+
+  {"comment": "The finish quality has been declining over the last two quarters. May need to find an alternative.", "rating": 2, "label": 0, "category": "genuine_critical"},
+  {"comment": "Not perfect but acceptable for cost-sensitive orders. Premium buyers should look elsewhere.", "rating": 3, "label": 0, "category": "genuine_mixed"},
+  {"comment": "Their export packing meets international norms. Shipped to Dubai without any documentation issues.", "rating": 5, "label": 0, "category": "genuine_en"}
+]
