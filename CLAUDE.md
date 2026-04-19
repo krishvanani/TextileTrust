@@ -8,7 +8,7 @@ TextileTrust is a three-service application split across sibling directories:
 
 - `backend/` — Node.js + Express API (MongoDB via Mongoose). Port **5003** by default (`PORT` in `backend/.env`).
 - `frontend/` — React 19 + Vite + Tailwind SPA. Dev port **5173** (Vite default). Reads `VITE_API_URL` from `frontend/.env{,.development}`; `frontend/src/services/api.js` falls back to `http://localhost:5003`.
-- `nlp/` — Python Flask microservice (port **5001**) used by the backend to classify reviews as fake/abusive before persistence. Runs BERT (`toxic-bert`), TF-IDF, and Word2Vec analyzers in an ensemble via `POST /analyze`.
+- `nlp/` — Python Flask microservice (port **5001**) used by the backend to classify reviews as fake/abusive before persistence. Runs a multilingual regex `AbusiveMatcher` plus TF-IDF, Naive Bayes, and Logistic Regression analyzers in an ensemble via `POST /analyze`. Pure scikit-learn + regex — no heavy ML deps, so it fits comfortably in small cloud tiers.
 
 Each service has its own dependency manifest and is started independently; there is no monorepo tooling or shared root `package.json`.
 
@@ -66,7 +66,7 @@ Idempotent: if `user.isSubscribed` is already true, the endpoint returns the cur
 - `POST /analyze` with `{ comment, rating }` returns `{ passed, is_fake, is_abusive, reason, scores }`. Backend calls this before creating/saving a review via `backend/services/nlpService.js::moderateReview`; `passed === false` returns 400 with `reason` as the message. Wired into `addReview`, `addReviewByGst`, and `updateReview` (re-checks when comment changes).
 - **Fail-open** on NLP outage: if the service is unreachable or times out (8s), `moderateReview` logs `[NLP UNAVAILABLE]` and returns `{ passed: true, failOpen: true }` so reviews keep flowing. Backend pings `GET /health` on startup and logs a warning if unreachable.
 - `POST /compare` is a dev/eval endpoint returning all three model verdicts individually — not wired into the main flow.
-- Models load once at startup; first boot downloads `toxic-bert` via HuggingFace.
+- Models load once at startup — all classical, no external model downloads.
 
 ### Frontend
 - `src/App.jsx` wraps everything in `AuthProvider` → `SearchProvider` → `BrowserRouter` → `ErrorBoundary` → `Layout`. All routes are defined inline there; no lazy loading.

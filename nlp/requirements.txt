@@ -3,10 +3,7 @@
 
 flask
 flask-cors
-
-# HuggingFace Transformers (BERT)
-transformers
-torch
+gunicorn
 
 # Scikit-learn for Naive Bayes / Logistic Regression classifiers
 scikit-learn

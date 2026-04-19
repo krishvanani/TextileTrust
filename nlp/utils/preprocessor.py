@@ -1,6 +1,7 @@
 """
-Text preprocessor — normalises raw review text before passing to TF-IDF and Word2Vec.
-BERT receives raw text (handles its own tokenisation).
+Text preprocessor — normalises raw review text before passing to TF-IDF,
+Naive Bayes, and Logistic Regression analyzers. The AbusiveMatcher runs on raw
+text so it can catch punctuation-attached tokens and multi-word phrases.
 """
 
 import re

@@ -6,7 +6,9 @@ Benchmarks every analyzer on the held-out test set in
 `nlp/data/best_model.json`, which the Flask service loads at startup.
 
 Two separate selections are made:
-  - best-abusive  : BERT vs. regex-only AbusiveMatcher
+  - best-abusive  : regex-only AbusiveMatcher (single candidate, kept for parity
+                    with the registry in app.py so future models can be added
+                    without changing the selection contract)
   - best-fake     : TF-IDF rules, NaiveBayes, LogisticRegression
 
 Run:
@@ -17,7 +19,6 @@ import json
 import os
 import logging
 
-from models.bert_analyzer                import BertAnalyzer
 from models.tfidf_analyzer               import TFIDFAnalyzer
 from models.naive_bayes_analyzer         import NaiveBayesAnalyzer
 from models.logistic_regression_analyzer import LogisticRegressionAnalyzer
@@ -76,7 +77,6 @@ def main():
 
     # ── Load all models ──────────────────────────────────────────────────────
     print("Loading models ...")
-    bert    = BertAnalyzer()
     tfidf   = TFIDFAnalyzer()
     nb      = NaiveBayesAnalyzer()
     logreg  = LogisticRegressionAnalyzer()
@@ -93,14 +93,13 @@ def main():
 
     # ── Collect predictions ──────────────────────────────────────────────────
     preds = {
-        'BERT':            [],
         'AbusiveMatcher':  [],
         'TFIDFRules':      [],
         'NaiveBayes':      [],
         'LogisticReg':     [],
     }
 
-    header = f"{'#':>3}  {'category':<18} {'BERT':^5} {'Match':^5} {'TFID':^5} {'NB':^5} {'LR':^5} {'truth':^6}"
+    header = f"{'#':>3}  {'category':<18} {'Match':^5} {'TFID':^5} {'NB':^5} {'LR':^5} {'truth':^6}"
     print(header)
     print("-" * len(header))
 
@@ -109,13 +108,11 @@ def main():
         rating    = c['rating']
         processed = preprocess_text(txt)
 
-        b_res = bert.analyze(txt)
         t_res = tfidf.analyze(processed, rating, txt)
         n_res = nb.analyze(processed, rating, txt)
         l_res = logreg.analyze(processed, rating, txt)
         m_hit = matcher.is_abusive(txt)
 
-        preds['BERT'].append(bool(b_res['is_toxic']))
         preds['AbusiveMatcher'].append(m_hit)
         preds['TFIDFRules'].append(bool(t_res['is_fake']))
         preds['NaiveBayes'].append(bool(n_res['is_fake']))
@@ -123,7 +120,6 @@ def main():
 
         truth = 'REJECT' if c['label'] else 'OK'
         print(f"{i:>3}  {c.get('category','?'):<18} "
-              f"{'X' if b_res['is_toxic'] else '.':^5} "
               f"{'X' if m_hit else '.':^5} "
               f"{'X' if t_res['is_fake'] else '.':^5} "
               f"{'X' if n_res['is_fake'] else '.':^5} "
@@ -135,7 +131,6 @@ def main():
     print("Task A : Abusive detection")
     print("=" * 78)
     abusive_results = {
-        'BERT':           metrics(preds['BERT'],           labels_abusive),
         'AbusiveMatcher': metrics(preds['AbusiveMatcher'], labels_abusive),
     }
     for name, m in abusive_results.items():
@@ -175,9 +170,9 @@ def main():
         'best_abusive': best_abusive,
         'best_fake':    best_fake,
         'metrics': {
-            'abusive': {k: {m: round(v, 4) for m, v in vals.items() if m != 'tp' and m != 'fp' and m != 'tn' and m != 'fn'}
+            'abusive': {k: {m: round(v, 4) for m, v in vals.items() if m not in ('tp','fp','tn','fn')}
                         for k, vals in abusive_results.items()},
-            'fake':    {k: {m: round(v, 4) for m, v in vals.items() if m != 'tp' and m != 'fp' and m != 'tn' and m != 'fn'}
+            'fake':    {k: {m: round(v, 4) for m, v in vals.items() if m not in ('tp','fp','tn','fn')}
                         for k, vals in fake_results.items()},
             'ensemble': {m: round(v, 4) for m, v in ensemble_metrics.items() if m not in ('tp','fp','tn','fn')},
         },

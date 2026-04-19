@@ -1,8 +1,9 @@
 import React, { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw, Key, Trash2, Loader, EyeOff } from 'lucide-react';
+import { ShieldCheck, User, Mail, Phone, Calendar, Star, Building2, LogOut, CreditCard, Eye, Activity, Clock, Edit, ThumbsUp, Lock, Check, X, Camera, Upload, ZoomIn, ZoomOut, RotateCw, Key, Trash2, Loader, EyeOff, AlertTriangle, Ban } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Cropper from 'react-easy-crop';
+import toast from 'react-hot-toast';
 
 import { useAuth } from '../context/AuthContext';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -80,6 +81,7 @@ const Profile = () => {
   const [myReviews, setMyReviews] = React.useState([]);
   const [showReviewModal, setShowReviewModal] = React.useState(false);
   const [editingReviewId, setEditingReviewId] = React.useState(null);
+  const [moderationError, setModerationError] = React.useState(null);
   const [rating, setRating] = React.useState(0);
   const [hoverRating, setHoverRating] = React.useState(0);
   const [dealAgain, setDealAgain] = React.useState(null);
@@ -318,7 +320,23 @@ const Profile = () => {
 
     } catch (error) {
        console.error("Failed to submit review:", error);
-       alert(error.response?.data?.message || "Something went wrong.");
+       const errorMsg = error.response?.data?.message || "Something went wrong.";
+       const details  = error.response?.data?.details;
+
+       if (error.response?.status === 400 && details?.moderation) {
+          setModerationError({
+            reason: errorMsg,
+            isFake: Boolean(details.isFake),
+            isAbusive: Boolean(details.isAbusive),
+          });
+          toast.error(
+            details.isAbusive
+              ? 'Review contains inappropriate language.'
+              : 'Review flagged as fake or spam.'
+          );
+       } else {
+          toast.error(errorMsg);
+       }
     }
   };
 
@@ -810,14 +828,14 @@ const Profile = () => {
               <>
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                   <h3 className="text-lg font-bold text-gray-900">Edit Review</h3>
-                  <button 
-                    onClick={() => setShowReviewModal(false)}
+                  <button
+                    onClick={() => { setShowReviewModal(false); setModerationError(null); }}
                     className="text-gray-400 hover:text-gray-900 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                
+
                 <form onSubmit={submitReview} className="p-6 space-y-6">
                   {/* Rating */}
                   <div>
@@ -868,12 +886,32 @@ const Profile = () => {
                   {/* Comment */}
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">Share your experience (Optional)</label>
-                      <textarea 
+                      <textarea
                       value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
+                      onChange={(e) => { setReviewText(e.target.value); if (moderationError) setModerationError(null); }}
                       placeholder="e.g. Payment terms were clear, delivery was on time..."
-                      className="w-full border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none min-h-[100px] resize-none input-glow"
+                      className={`w-full border rounded-xl p-4 text-sm focus:ring-2 outline-none min-h-[100px] resize-none input-glow ${moderationError ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : 'border-gray-200 focus:ring-brand-500 focus:border-brand-500'}`}
                     ></textarea>
+                    {moderationError && (
+                      <div className="mt-3 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {moderationError.isAbusive
+                            ? <Ban className="w-5 h-5 text-red-600" />
+                            : <AlertTriangle className="w-5 h-5 text-amber-600" />}
+                        </div>
+                        <div className="text-sm">
+                          <p className="font-bold text-red-800">
+                            {moderationError.isAbusive
+                              ? 'This review contains abusive language'
+                              : moderationError.isFake
+                                ? 'This review looks fake or spammy'
+                                : 'Review rejected by moderation'}
+                          </p>
+                          <p className="mt-1 text-red-700">{moderationError.reason}</p>
+                          <p className="mt-1 text-red-600/80 text-xs">Please edit your review and try again.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Anonymous Toggle */}

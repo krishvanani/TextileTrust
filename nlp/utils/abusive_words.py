@@ -2,7 +2,7 @@
 Abusive / profanity / slang word list — multilingual (Roman transliteration).
 Covers: English, Hindi, Gujarati, Kathiyawadi, Marathi, Punjabi,
         Urdu, Bengali, Rajasthani, Tamil, Telugu (Roman script).
-Used as fast keyword pre-check before running BERT.
+Used by AbusiveMatcher as the primary multilingual abusive-content gate.
 """
 
 ABUSIVE_WORDS = [

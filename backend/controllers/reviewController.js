@@ -79,7 +79,9 @@ const addReview = asyncHandler(async (req, res) => {
   const verdict = await moderateReview({ comment, rating });
   if (!verdict.passed) {
     res.status(400);
-    throw new Error(verdict.reason || 'Review rejected by content moderation.');
+    const err = new Error(verdict.reason || 'Review rejected by content moderation.');
+    err.details = { moderation: true, isFake: verdict.isFake, isAbusive: verdict.isAbusive };
+    throw err;
   }
 
   // 5. Create Review
@@ -215,7 +217,9 @@ const updateReview = asyncHandler(async (req, res) => {
     const verdict = await moderateReview({ comment, rating: effectiveRating });
     if (!verdict.passed) {
       res.status(400);
-      throw new Error(verdict.reason || 'Review rejected by content moderation.');
+      const err = new Error(verdict.reason || 'Review rejected by content moderation.');
+      err.details = { moderation: true, isFake: verdict.isFake, isAbusive: verdict.isAbusive };
+      throw err;
     }
   }
 
@@ -448,7 +452,9 @@ const addReviewByGst = asyncHandler(async (req, res) => {
   const verdict = await moderateReview({ comment, rating });
   if (!verdict.passed) {
     res.status(400);
-    throw new Error(verdict.reason || 'Review rejected by content moderation.');
+    const err = new Error(verdict.reason || 'Review rejected by content moderation.');
+    err.details = { moderation: true, isFake: verdict.isFake, isAbusive: verdict.isAbusive };
+    throw err;
   }
 
   // 5. Create review

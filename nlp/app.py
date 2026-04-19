@@ -9,7 +9,7 @@ Endpoints:
   GET  /best-model     - returns the model selected by evaluate.py
   POST /analyze        - ensemble check (abusive matcher OR fake classifier)
   POST /detect-fake    - uses the best fake-detection model from best_model.json
-  POST /detect-abusive - multilingual abusive-word / toxicity check
+  POST /detect-abusive - multilingual abusive-word check
   POST /compare        - runs every loaded analyzer and returns their verdicts
 """
 
@@ -20,7 +20,6 @@ import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from models.bert_analyzer                import BertAnalyzer
 from models.tfidf_analyzer               import TFIDFAnalyzer
 from models.naive_bayes_analyzer         import NaiveBayesAnalyzer
 from models.logistic_regression_analyzer import LogisticRegressionAnalyzer
@@ -37,7 +36,6 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'data', 'best_model.json')
 
 # ── Load everything once at startup ──────────────────────────────────────────
 logger.info("=== Loading NLP Models ===")
-bert    = BertAnalyzer()
 tfidf   = TFIDFAnalyzer()
 nb      = NaiveBayesAnalyzer()
 logreg  = LogisticRegressionAnalyzer()
@@ -51,7 +49,6 @@ FAKE_REGISTRY = {
 }
 
 ABUSIVE_REGISTRY = {
-    'BERT':           lambda raw: bert.analyze(raw),
     'AbusiveMatcher': lambda raw: {
         'is_toxic': matcher.is_abusive(raw),
         'confidence': 0.99 if matcher.is_abusive(raw) else 0.0,
@@ -67,17 +64,17 @@ def load_best_model():
         try:
             with open(CONFIG_FILE, encoding='utf-8') as f:
                 cfg = json.load(f)
-            best_abusive = cfg.get('best_abusive', 'BERT')
+            best_abusive = cfg.get('best_abusive', 'AbusiveMatcher')
             best_fake    = cfg.get('best_fake', 'LogisticReg')
-            if best_abusive not in ABUSIVE_REGISTRY: best_abusive = 'BERT'
+            if best_abusive not in ABUSIVE_REGISTRY: best_abusive = 'AbusiveMatcher'
             if best_fake    not in FAKE_REGISTRY:    best_fake    = 'LogisticReg'
             logger.info(f"Best abusive model: {best_abusive} | Best fake model: {best_fake}")
             return best_abusive, best_fake, cfg
         except Exception as e:
             logger.warning(f"Failed to read {CONFIG_FILE}: {e}. Using defaults.")
-    logger.info("No best_model.json found. Using defaults (BERT / LogisticReg). "
+    logger.info("No best_model.json found. Using defaults (AbusiveMatcher / LogisticReg). "
                 "Run `python evaluate.py` to pick winners from data.")
-    return 'BERT', 'LogisticReg', {}
+    return 'AbusiveMatcher', 'LogisticReg', {}
 
 
 BEST_ABUSIVE, BEST_FAKE, BEST_CONFIG = load_best_model()
@@ -88,12 +85,12 @@ BEST_ABUSIVE, BEST_FAKE, BEST_CONFIG = load_best_model()
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
-        'status':        'ok',
-        'service':       'TextileTrust NLP',
-        'best_abusive':  BEST_ABUSIVE,
-        'best_fake':     BEST_FAKE,
-        'abusive_vocab': matcher.vocab_size,
-        'fake_models':   list(FAKE_REGISTRY.keys()),
+        'status':         'ok',
+        'service':        'TextileTrust NLP',
+        'best_abusive':   BEST_ABUSIVE,
+        'best_fake':      BEST_FAKE,
+        'abusive_vocab':  matcher.vocab_size,
+        'fake_models':    list(FAKE_REGISTRY.keys()),
         'abusive_models': list(ABUSIVE_REGISTRY.keys()),
     })
 
@@ -176,13 +173,14 @@ def analyze():
 
     processed = preprocess_text(text)
 
-    bert_res  = bert.analyze(text)
+    abusive_hits = matcher.find_matches(text)
+    is_abusive   = bool(abusive_hits)
+
     tfidf_res = tfidf.analyze(processed, rating, text)
     nb_res    = nb.analyze(processed, rating, text)
     lr_res    = logreg.analyze(processed, rating, text)
 
-    is_abusive = bool(bert_res.get('is_toxic'))
-    is_fake    = bool(
+    is_fake = bool(
         tfidf_res.get('is_fake') or
         nb_res.get('is_fake')    or
         lr_res.get('is_fake')
@@ -190,7 +188,7 @@ def analyze():
 
     reason = ''
     if is_abusive:
-        reason = bert_res.get('reason', 'Review contains abusive or toxic language.')
+        reason = 'Review contains explicitly inappropriate language.'
     elif is_fake:
         reason = (
             tfidf_res.get('reason') or
@@ -207,10 +205,10 @@ def analyze():
         'is_abusive': is_abusive,
         'reason':     reason,
         'scores': {
-            'bert':        bert_res,
-            'tfidf':       tfidf_res,
-            'naive_bayes': nb_res,
-            'logreg':      lr_res,
+            'abusive_matcher': {'is_toxic': is_abusive, 'matched_words': abusive_hits},
+            'tfidf':           tfidf_res,
+            'naive_bayes':     nb_res,
+            'logreg':          lr_res,
         },
     })
 
@@ -231,9 +229,8 @@ def compare():
         'text':   text,
         'rating': rating,
         'abusive': {
-            'BERT':            bert.analyze(text),
-            'AbusiveMatcher':  {
-                'is_toxic': matcher.is_abusive(text),
+            'AbusiveMatcher': {
+                'is_toxic':      matcher.is_abusive(text),
                 'matched_words': matcher.find_matches(text),
             },
         },
