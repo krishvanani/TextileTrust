@@ -4,6 +4,7 @@ const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const recalcCompanyStats = require('../utils/recalcCompanyStats');
+const { moderateReview } = require('../services/nlpService');
 
 // @desc    Get all reviews for a company
 // @route   GET /api/reviews/:companyId
@@ -72,6 +73,13 @@ const addReview = asyncHandler(async (req, res) => {
   if (reviewExists) {
     res.status(400);
     throw new Error('You have already reviewed this company');
+  }
+
+  // NLP moderation gate (fail-open on NLP service outage)
+  const verdict = await moderateReview({ comment, rating });
+  if (!verdict.passed) {
+    res.status(400);
+    throw new Error(verdict.reason || 'Review rejected by content moderation.');
   }
 
   // 5. Create Review
@@ -198,6 +206,17 @@ const updateReview = asyncHandler(async (req, res) => {
   if (review.userId.toString() !== req.user.id.toString()) {
     res.status(403);
     throw new Error('You can only edit your own reviews');
+  }
+
+  // NLP re-check when comment changes (fail-open on NLP service outage)
+  const commentChanged = comment !== undefined && comment !== review.comment;
+  if (commentChanged) {
+    const effectiveRating = rating !== undefined ? rating : review.rating;
+    const verdict = await moderateReview({ comment, rating: effectiveRating });
+    if (!verdict.passed) {
+      res.status(400);
+      throw new Error(verdict.reason || 'Review rejected by content moderation.');
+    }
   }
 
   // 4. Update Review
@@ -423,6 +442,13 @@ const addReviewByGst = asyncHandler(async (req, res) => {
   if (reviewExists) {
     res.status(400);
     throw new Error('You have already reviewed this company');
+  }
+
+  // NLP moderation gate (fail-open on NLP service outage)
+  const verdict = await moderateReview({ comment, rating });
+  if (!verdict.passed) {
+    res.status(400);
+    throw new Error(verdict.reason || 'Review rejected by content moderation.');
   }
 
   // 5. Create review

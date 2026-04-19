@@ -79,7 +79,21 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const { pingNlp, NLP_SERVICE_URL } = require('./services/nlpService');
+
+const server = app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+
+  const nlp = await pingNlp();
+  if (nlp.ok) {
+    console.log(`[NLP] reachable at ${NLP_SERVICE_URL} — fake=${nlp.info.best_fake} abusive=${nlp.info.best_abusive}`);
+  } else {
+    console.warn(
+      `[NLP] UNREACHABLE at ${NLP_SERVICE_URL} (${nlp.err}). ` +
+      `Review moderation will fail-open until the NLP service is back.`
+    );
+  }
+});
 
 server.on('error', (err) => {
   console.error('[FATAL] Server Error:', err);

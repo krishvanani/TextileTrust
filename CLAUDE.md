@@ -63,7 +63,8 @@ NLP (`cd nlp`):
 Idempotent: if `user.isSubscribed` is already true, the endpoint returns the current state without creating a new `Subscription` document. When activating, it also rewrites `user.role` from `req.body.businessType` by upper-snake-casing the string (e.g. "Yarn Supplier" → `YARN_SUPPLIER`) — must stay in sync with the `User.role` enum.
 
 ### NLP service contract
-- `POST /analyze` with `{ comment, rating }` returns `{ passed, is_fake, is_abusive, reason, scores }`. Backend calls this before creating/saving a review; `passed === false` should block the write.
+- `POST /analyze` with `{ comment, rating }` returns `{ passed, is_fake, is_abusive, reason, scores }`. Backend calls this before creating/saving a review via `backend/services/nlpService.js::moderateReview`; `passed === false` returns 400 with `reason` as the message. Wired into `addReview`, `addReviewByGst`, and `updateReview` (re-checks when comment changes).
+- **Fail-open** on NLP outage: if the service is unreachable or times out (8s), `moderateReview` logs `[NLP UNAVAILABLE]` and returns `{ passed: true, failOpen: true }` so reviews keep flowing. Backend pings `GET /health` on startup and logs a warning if unreachable.
 - `POST /compare` is a dev/eval endpoint returning all three model verdicts individually — not wired into the main flow.
 - Models load once at startup; first boot downloads `toxic-bert` via HuggingFace.
 
@@ -75,7 +76,7 @@ Idempotent: if `user.isSubscribed` is already true, the endpoint returns the cur
 
 ## Environment variables
 
-Backend `.env` (not committed) must include at minimum: `MONGO_URI`, `JWT_SECRET`, `PORT`, `CORS_ORIGIN`, Firebase Admin vars (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_ID`, `FIREBASE_CERT_URL`), and Cloudinary (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). Razorpay keys are expected if payment flows are exercised.
+Backend `.env` (not committed) must include at minimum: `MONGO_URI`, `JWT_SECRET`, `PORT`, `CORS_ORIGIN`, Firebase Admin vars (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_ID`, `FIREBASE_CERT_URL`), and Cloudinary (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). Razorpay keys are expected if payment flows are exercised. `NLP_SERVICE_URL` (default `http://localhost:5001`) points at the Flask NLP microservice used for review moderation.
 
 Frontend uses `VITE_API_URL` only. `frontend/.env` points at prod, `frontend/.env.development` at `http://localhost:5003` — Vite picks automatically based on mode.
 
@@ -83,5 +84,6 @@ Frontend uses `VITE_API_URL` only. `frontend/.env` points at prod, `frontend/.en
 
 - Controllers use `express-async-handler` and the `res.status(code); throw new Error(msg);` pattern. The global error middleware relies on the status being set on `res` before the throw — keep this pattern when adding endpoints.
 - When creating/updating/deleting reviews, always recompute company stats (`recalcCompanyStats` + `recalculateReputation`) before responding. Skipping it leaves `Company.avgRating`/`totalReviews`/`dealAgainPercentage` stale.
+- Any new code path that writes a review comment must call `moderateReview` from `services/nlpService.js` before the DB write. It is fail-open by design — do not wrap it in a `try/catch` that would convert an NLP outage into a user-facing 500.
 - `reviewCount` on `User` is incremented manually in the add-review path. The 5-review free cap reads it directly; keep it monotonic.
 - Windows is the primary dev platform (PowerShell `fix_urls.ps1`), but shell commands in this repo should use Unix syntax per environment policy.
