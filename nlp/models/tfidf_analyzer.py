@@ -34,7 +34,7 @@ GENERIC_PHRASES = [
 ]
 
 # Scoring weights (must sum meaningfully; flagged when total >= THRESHOLD)
-THRESHOLD = 0.50
+THRESHOLD = 0.65
 
 
 class TFIDFAnalyzer:
@@ -53,21 +53,21 @@ class TFIDFAnalyzer:
         reasons  = []
 
         # ── 1. Very short + extreme rating ─────────────────────────────────
-        if len(words) <= 4 and rating in (1, 5):
+        # Only flag truly trivial reviews (<=3 words). A genuine 5-word 5-star
+        # like "Delivery was on time, excellent." should NOT trip this.
+        if len(words) <= 3 and rating in (1, 5):
             score += 0.40
             reasons.append('Extremely short review with extreme rating (high fake signal)')
 
-        elif len(words) <= 8 and rating in (1, 5):
-            score += 0.20
-            reasons.append('Short review with extreme rating')
-
         # ── 2. Generic / templated phrases ─────────────────────────────────
+        # A single generic phrase is fine in a real review ("highly recommend");
+        # require 3+ matches before flagging, since that's the templated pattern.
         matched_phrases = [p for p in GENERIC_PHRASES if p in raw_low]
-        if len(matched_phrases) >= 2:
-            score += 0.30
+        if len(matched_phrases) >= 3:
+            score += 0.35
             reasons.append(f'Contains {len(matched_phrases)} generic/templated phrases')
-        elif len(matched_phrases) == 1:
-            score += 0.10
+        elif len(matched_phrases) == 2:
+            score += 0.15
 
         # ── 3. Repeated characters (aaaa, !!!!, ????) ─────────────────────
         if re.search(r'(.)\1{4,}', raw):

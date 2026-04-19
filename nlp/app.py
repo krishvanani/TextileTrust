@@ -180,11 +180,11 @@ def analyze():
     nb_res    = nb.analyze(processed, rating, text)
     lr_res    = logreg.analyze(processed, rating, text)
 
-    is_fake = bool(
-        tfidf_res.get('is_fake') or
-        nb_res.get('is_fake')    or
-        lr_res.get('is_fake')
-    )
+    # Majority vote: only flag as fake if at least 2 of 3 detectors agree.
+    # OR-ensemble was too aggressive because each classifier has its own false
+    # positives on short genuine reviews; requiring agreement cancels them out.
+    fake_votes = sum(1 for r in (tfidf_res, nb_res, lr_res) if r.get('is_fake'))
+    is_fake = fake_votes >= 2
 
     reason = ''
     if is_abusive:

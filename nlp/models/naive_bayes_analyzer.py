@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'training_data.json')
 
-THRESHOLD = 0.55  # predicted probability above which a review is rejected
+THRESHOLD = 0.75  # predicted probability above which a review is rejected.
+# Raised from 0.55 — the training set is ~70% fake, so NB's learned prior is
+# biased toward "fake" and low thresholds over-flag genuine short reviews.
 
 
 class NaiveBayesAnalyzer:

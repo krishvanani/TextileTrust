@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'training_data.json')
 
-THRESHOLD = 0.55
+THRESHOLD = 0.75  # raised from 0.55 to match NaiveBayes after field testing
+# showed the biased (70% fake) training set causes over-flagging of genuine
+# short reviews. Real fakes usually score well above 0.80.
 
 
 def _numeric_features(text: str, rating: int, matcher: AbusiveMatcher) -> list:
