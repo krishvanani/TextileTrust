@@ -147,6 +147,13 @@ def detect_fake():
             'matched_words': abusive_hits,
         })
 
+    # Single-word reviews bypass fake detection (see /analyze for rationale).
+    if len(text.split()) <= 1:
+        return jsonify({
+            'passed': True, 'is_fake': False, 'is_abusive': False,
+            'reason': '', 'model': BEST_FAKE,
+        })
+
     processed = preprocess_text(text)
     fake_res  = FAKE_REGISTRY[BEST_FAKE](processed, rating, text)
     is_fake   = bool(fake_res.get('is_fake'))
@@ -176,15 +183,25 @@ def analyze():
     abusive_hits = matcher.find_matches(text)
     is_abusive   = bool(abusive_hits)
 
-    tfidf_res = tfidf.analyze(processed, rating, text)
-    nb_res    = nb.analyze(processed, rating, text)
-    lr_res    = logreg.analyze(processed, rating, text)
+    # A single-word review ("good", "bad", "ok") is low-effort but not "fake"
+    # in any meaningful sense — skip the fake classifiers, they over-fire on
+    # short genuine reviews because the training set treats trivial words as
+    # fake examples. Abusive content is still checked above.
+    word_count = len(text.split())
+    if word_count <= 1:
+        tfidf_res = nb_res = lr_res = {'is_fake': False, 'confidence': 0.0, 'reason': ''}
+        is_fake = False
+    else:
+        tfidf_res = tfidf.analyze(processed, rating, text)
+        nb_res    = nb.analyze(processed, rating, text)
+        lr_res    = logreg.analyze(processed, rating, text)
 
-    # Majority vote: only flag as fake if at least 2 of 3 detectors agree.
-    # OR-ensemble was too aggressive because each classifier has its own false
-    # positives on short genuine reviews; requiring agreement cancels them out.
-    fake_votes = sum(1 for r in (tfidf_res, nb_res, lr_res) if r.get('is_fake'))
-    is_fake = fake_votes >= 2
+        # Majority vote: only flag as fake if at least 2 of 3 detectors agree.
+        # OR-ensemble was too aggressive because each classifier has its own
+        # false positives on short genuine reviews; requiring agreement cancels
+        # them out.
+        fake_votes = sum(1 for r in (tfidf_res, nb_res, lr_res) if r.get('is_fake'))
+        is_fake = fake_votes >= 2
 
     reason = ''
     if is_abusive:
