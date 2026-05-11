@@ -107,7 +107,7 @@ const LandingPage = () => {
             <span className="sm:hidden">Textile Verification</span>
           </div>
           
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white tracking-tight leading-tight mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white tracking-tight leading-tight mb-4 sm:mb-6 md:mb-8">
             Trade with <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-brand-200 to-brand-500 text-shimmer relative">Confidence
             <svg className="absolute w-full h-2 sm:h-3 -bottom-0.5 sm:-bottom-1 left-0 text-brand-500/50 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
               <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
